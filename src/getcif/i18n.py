@@ -74,6 +74,11 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
     "已启用：{}": {"en": "Enabled: {}", "ja": "有効: {}"},
     "取消 (&X)": {"en": "Cancel (&X)", "ja": "キャンセル(&X)"},
     "（尚未检索）": {"en": "(not searched yet)", "ja": "（未検索）"},
+    "标准版不含 3D 预览": {"en": "3D preview is not included in the Standard edition", "ja": "標準版には 3D プレビューは含まれません"},
+    "如需 3D 结构展示，请使用 PolyXRD-GetCIF-Plus": {
+        "en": "For 3D structure view, use PolyXRD-GetCIF-Plus",
+        "ja": "3D 構造表示には PolyXRD-GetCIF-Plus をご利用ください",
+    },
     # ---- 数据源名 ----
     "COD（联网）": {"en": "COD (online)", "ja": "COD（オンライン）"},
     "COD 本地库": {"en": "COD Local", "ja": "COD ローカル"},

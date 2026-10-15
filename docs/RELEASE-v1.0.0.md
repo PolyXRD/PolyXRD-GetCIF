@@ -4,6 +4,15 @@
 
 ![logo](resources/logo-horizontal.png)
 
+## 📦 两个版本（按需下载其一即可）
+
+| 版本 | 资产 | 体积 | 适用 |
+|---|---|---|---|
+| **标准版** | `PolyXRD-GetCIF.exe` | ~106 MB | 只需检索 / 预览 / 下载 CIF；轻量（无 3D，Qt 已精简） |
+| **Plus 版** | `PolyXRD-GetCIF-Plus.exe` | ~269 MB | 需要**应用内 3D 结构展示**（对称操作展开渲染）；保留完整 Qt 便于后续功能扩展 |
+
+两个版本检索能力完全一致；标准版预览窗会提示升级 Plus。
+
 ## ✨ 功能
 
 - **多数据源检索**（左侧检索条件 / 右侧结果列表）：
@@ -15,13 +24,13 @@
   | Materials Project | 需免费 API Key（materialsproject.org） | 配置后开启 |
   | Atomly | 需 Token（atomly.net 登录后 localStorage 取 `userToken`） | 配置后开启 |
 - **检索条件**：化学式、元素、名称/关键词、空间群、晶系（本地库）、晶胞参数 a/b/c/α/β/γ
-- **候选预览**：双击结果行弹出预览窗 —— 结构信息、CIF 全文、**3D 结构展示**（对称操作展开渲染）、下载/另存
+- **候选预览**：双击结果行弹出预览窗 —— 结构信息、CIF 全文、3D 结构展示（Plus 版）、下载/另存
 - **三语界面**：中文 / English / 日本語（菜单即时切换）
 - **PolyXRD 主题**：与家族一致的 logo、splash、深海军蓝 + 青色配色
 
-## 📦 安装
+## 📥 安装
 
-1. 下载下方 Assets 中的 `PolyXRD-GetCIF.exe`（约 269 MB，单文件免安装）；
+1. 下载下方 Assets 中任一版本的 exe（单文件免安装）；
 2. 双击运行。首次启动解压需数秒，属正常现象；
 3. 配置保存在 `%APPDATA%\PolyXRD\GetCIF\settings.toml`，下载的 CIF 默认存于 `%APPDATA%\PolyXRD\GetCIF\downloads`。
 
@@ -29,7 +38,7 @@
 
 - 离线自检 24 项全过：CIF 解析（对称操作数值验证 / esd 剥离 / 分号多行块）、MP structure→CIF、本地库六类条件过滤、3D 渲染、GUI 离屏冒烟
 - 在线实测：COD 检索 `SiO2`（247 条命中）→ CIF 下载 → 解析 → 3D 渲染全链路通过
-- 打包产物离屏冒烟 EXIT=0
+- 双版本产物离屏冒烟均 EXIT=0（标准版 111,606,058 字节 / Plus 版 282,033,656 字节）
 
 运行 `tests/run_checks.py`（`--online` 附加联网检查）可复现以上验证。
 

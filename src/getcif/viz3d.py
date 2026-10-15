@@ -32,7 +32,13 @@ class Viewer3D:
             from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
             from matplotlib.figure import Figure
         except Exception as exc:  # noqa: BLE001
-            self.last_message = f"3D 预览依赖缺失：{exc}"
+            from getcif.i18n import tr
+            from getcif.utils.edition import STANDARD, get_edition
+
+            if get_edition() == STANDARD:
+                self.last_message = f"{tr('标准版不含 3D 预览')}\n{tr('如需 3D 结构展示，请使用 PolyXRD-GetCIF-Plus')}"
+            else:
+                self.last_message = f"3D 预览依赖缺失：{exc}"
             return
         self.figure = Figure(figsize=self.figure_size, facecolor=_BG_COLOR)
         self.axes = self.figure.add_subplot(111, projection="3d", facecolor=_BG_COLOR)

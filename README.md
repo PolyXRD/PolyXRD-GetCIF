@@ -4,6 +4,15 @@
 
 ![logo](resources/logo-horizontal.png)
 
+## 两个版本
+
+| 版本 | 下载 | 体积 | 差异 |
+|---|---|---|---|
+| **标准版** | `PolyXRD-GetCIF.exe` | ~106 MB | 检索 / 预览 / 下载全功能；**不含 3D 预览**（matplotlib/numpy 已裁剪 + Qt 未用模块精简） |
+| **Plus 版** | `PolyXRD-GetCIF-Plus.exe` | ~269 MB | 含**应用内 3D 结构展示**（对称操作展开渲染）+ 完整 Qt，为后续功能扩展预留 |
+
+两个版本检索能力完全一致（COD / 本地库 / AMCSD / MP / Atomly）；标准版预览窗会提示升级 Plus。
+
 ## 功能
 
 - **多数据源检索**，左侧检索条件 / 右侧结果列表：
@@ -15,7 +24,7 @@
   | Materials Project | 需免费 API Key（materialsproject.org） | 配置后开启 |
   | Atomly | 需 Token（atomly.net 登录后 localStorage 取 `userToken`） | 配置后开启 |
 - **检索条件**：化学式、元素、名称/关键词、空间群、晶系（本地库）、晶胞参数 a/b/c/α/β/γ
-- **候选预览**：双击结果行弹出预览窗 —— 结构信息、CIF 全文、**3D 结构展示**（对称操作展开）、下载/另存
+- **候选预览**：双击结果行弹出预览窗 —— 结构信息、CIF 全文、3D 结构展示（Plus 版）、下载/另存
 - **三语界面**：中文 / English / 日本語（菜单即时切换）
 - **PolyXRD 主题**：与家族一致的 logo、splash、深海军蓝 + 青色配色
 
@@ -33,12 +42,15 @@ python -m getcif.gui
 QT_QPA_PLATFORM=offscreen python -m getcif.gui --smoke --no-splash
 ```
 
-## 打包单 exe
+## 打包双版本 exe
 
 ```bat
 build.bat
-:: 产物: dist\PolyXRD-GetCIF.exe
+:: 产物: dist\PolyXRD-GetCIF.exe       （标准版，去3D+裁剪Qt）
+::       dist\PolyXRD-GetCIF-Plus.exe  （Plus 版，含3D+全量Qt）
 ```
+
+构建脚本为纯 ASCII + CRLF（cmd 在 cp65001 下解析含全角字符的批处理行可能错位）。
 
 ## 配置存储
 

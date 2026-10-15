@@ -1,15 +1,17 @@
 # -*- mode: python ; coding: utf-8 -*-
-"""PolyXRD GetCIF —— PyInstaller 打包配置（onefile 单文件版）。
+"""PolyXRD GetCIF —— 标准版 PyInstaller 配置（onefile，去 3D + 裁剪 Qt）。
 
-交付形态::
+与 Plus 版的差异：
+    * **不含 matplotlib / numpy**（无 3D 预览；预览窗显示 Plus 版提示）；
+    * **裁剪未使用的 Qt 模块 DLL**（Multimedia/Pdf/Charts/Sql/Designer/Test/
+      Network/SerialPort/Sensors/Bluetooth 等），exe 体积显著减小；
+    * 其余（检索 / 预览 / 三语 / 主题）与 Plus 版完全一致。
 
-    dist/PolyXRD-GetCIF.exe     单文件，双击即用，无需安装
+用法::
 
-要点：
-    * 入口 ``src/getcif/gui.py``；
-    * 仅依赖 PySide6 / matplotlib / numpy（无 pymatgen / spglib，体积小）；
-    * **排除 QtWebEngine / QML** 大件；
-    * 品牌资产 ``resources`` 打进包内（运行时经 sys._MEIPASS 解析）。
+    set GETCIF_VERSION=1.0.0
+    python -m PyInstaller PolyXRD-GetCIF.spec --noconfirm
+    # 产物: dist\PolyXRD-GetCIF.exe
 """
 from __future__ import annotations
 
@@ -30,7 +32,6 @@ hiddenimports: list[str] = [
     "getcif.gui",
     "getcif.search",
     "getcif.cifparse",
-    "getcif.viz3d",
     "getcif.viz_elements",
     "getcif.i18n",
     "getcif.core.config",
@@ -51,29 +52,64 @@ hiddenimports: list[str] = [
     "getcif.ui.about_dialog",
     "getcif.ui.theme",
     "getcif.utils.resources",
-    # matplotlib Qt 后端（3D 预览）
-    "matplotlib.backends.backend_qtagg",
+    "getcif.utils.edition",
 ]
 
-_QT_BLOAT_TOKENS = ("webengine", "qtwebengine", "qtqml", "qtquick", "qt3d")
+# ---- 标准版体积裁剪 ------------------------------------------------------
+#: Qt 大件 / 未使用模块的识别 token（对 PySide6 收集到的 DLL / 资源按名过滤）。
+#: 注意保留：QtCore/QtGui/QtWidgets/Qt6Svg（图标）/qico（exe 图标兜底）/
+#: styles 与 platforms 插件（Windows 运行必需）。
+_QT_BLOAT_TOKENS: tuple[str, ...] = (
+    # 交互式大件（Plus 版也排除）
+    "webengine", "qtwebengine", "qtqml", "qtquick", "qt3d",
+    # 标准版额外裁剪：与检索/预览无关的 Qt 模块
+    "qtmultimedia", "qtaudio", "qt6camera",
+    "qtpdf",
+    "qtcharts", "qtdatavis",
+    "qtsql",
+    "qttest",
+    "qtdesigner", "quitools", "qthelp", "qtlinguist", "qtassistant",
+    "qtnetwork",          # 覆盖 QtNetwork / QtNetworkAuth（本工具网络走 stdlib）
+    "qtserialport", "qtserialbus",
+    "qtsensors", "qtpositioning", "qtlocation",
+    "qtwebchannel", "qtwebsockets", "qtwebview",
+    "qtbluetooth", "qtnfc",
+    "qtvirtualkeyboard",
+    "qttexttospeech",
+    "qtscxml", "qtremoteobjects", "qtstatemachine",
+    "qtspatialaudio", "qthttpserver", "qtgrpc", "qtprotobuf",
+    "qtquick3d", "qtlabs",
+)
 
 ANALYSIS_EXCLUDES: list[str] = [
     "tkinter",
     "pydoc_data",
     "pytest",
-    "PySide6.QtWebEngineCore",
-    "PySide6.QtWebEngineWidgets",
-    "PySide6.QtWebEngineQuick",
-    "PySide6.QtQml",
-    "PySide6.QtQuick",
-    "PySide6.QtQuick3D",
-    "PySide6.QtQuickWidgets",
-    "PySide6.Qt3DCore",
-    "PySide6.Qt3DRender",
+    # 标准版：3D 依赖整体排除
+    "matplotlib",
+    "numpy",
+    # 标准版：未使用的 Qt python 包装模块
+    "PySide6.QtWebEngineCore", "PySide6.QtWebEngineWidgets", "PySide6.QtWebEngineQuick",
+    "PySide6.QtQml", "PySide6.QtQuick", "PySide6.QtQuick3D", "PySide6.QtQuickWidgets",
+    "PySide6.Qt3DCore", "PySide6.Qt3DRender",
+    "PySide6.QtMultimedia", "PySide6.QtMultimediaWidgets",
+    "PySide6.QtPdf", "PySide6.QtPdfWidgets",
+    "PySide6.QtCharts", "PySide6.QtDataVisualization",
+    "PySide6.QtSql",
+    "PySide6.QtTest",
+    "PySide6.QtDesigner", "PySide6.QtUiTools", "PySide6.QtHelp",
+    "PySide6.QtNetwork", "PySide6.QtNetworkAuth",
+    "PySide6.QtSerialPort", "PySide6.QtSerialBus",
+    "PySide6.QtSensors", "PySide6.QtPositioning", "PySide6.QtLocation",
+    "PySide6.QtWebChannel", "PySide6.QtWebSockets", "PySide6.QtWebView",
+    "PySide6.QtBluetooth", "PySide6.QtNfc",
+    "PySide6.QtVirtualKeyboard",
+    "PySide6.QtTextToSpeech",
+    "PySide6.QtScxml", "PySide6.QtRemoteObjects", "PySide6.QtStateMachine",
 ]
 
 
-def _is_qt_bloat(item: object) -> bool:
+def _is_bloat(item: object) -> bool:
     text = str(item).lower()
     return any(token in text for token in _QT_BLOAT_TOKENS)
 
@@ -100,12 +136,12 @@ VSVersionInfo(
           "080404B0",
           [
             StringStruct("CompanyName", "PolyXRD Team"),
-            StringStruct("FileDescription", "PolyXRD GetCIF - CIF Search & Fetch Tool"),
+            StringStruct("FileDescription", "PolyXRD GetCIF (Standard) - CIF Search & Fetch Tool"),
             StringStruct("FileVersion", "{VERSION}"),
             StringStruct("InternalName", "PolyXRD-GetCIF"),
             StringStruct("LegalCopyright", "Copyright (c) 2026 PolyXRD Team"),
             StringStruct("OriginalFilename", "PolyXRD-GetCIF.exe"),
-            StringStruct("ProductName", "PolyXRD GetCIF"),
+            StringStruct("ProductName", "PolyXRD GetCIF (Standard)"),
             StringStruct("ProductVersion", "{VERSION}"),
           ],
         )
@@ -122,15 +158,11 @@ VSVersionInfo(
     return target
 
 
-for _package in ("PySide6", "matplotlib", "numpy"):
-    _d, _b, _h = collect_all(_package)
-    if _package == "PySide6":
-        datas += [entry for entry in _d if not _is_qt_bloat(entry)]
-        binaries += [entry for entry in _b if not _is_qt_bloat(entry)]
-    else:
-        datas += list(_d)
-        binaries += list(_b)
-    hiddenimports += list(_h)
+# 标准版只收 PySide6（过滤后），不收 matplotlib / numpy
+_d, _b, _h = collect_all("PySide6")
+datas += [entry for entry in _d if not _is_bloat(entry)]
+binaries += [entry for entry in _b if not _is_bloat(entry)]
+hiddenimports += list(_h)
 
 
 a = Analysis(

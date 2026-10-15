@@ -9,6 +9,7 @@ from PySide6.QtWidgets import QDialog, QHBoxLayout, QLabel, QPushButton, QVBoxLa
 
 from getcif import __app_name__, __version__
 from getcif.i18n import tr
+from getcif.utils.edition import get_edition
 from getcif.utils.resources import get_logo_horizontal_path
 
 
@@ -29,7 +30,7 @@ class AboutDialog(QDialog):
             logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
             root.addWidget(logo)
 
-        title = QLabel(f"{__app_name__} v{__version__}")
+        title = QLabel(f"{__app_name__} {get_edition()} v{__version__}")
         title.setStyleSheet("font-size:16px; font-weight:700; color:#4FC3F7;")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         root.addWidget(title)
