@@ -59,6 +59,9 @@ def _install_crash_handler() -> None:
         except Exception:  # noqa: BLE001
             path_hint = "(无法写入日志文件)"
         logger.error("未捕获异常：\n%s", text)
+        # offscreen / 冒烟环境弹窗无意义且会阻塞（无人点击），跳过
+        if os.environ.get("QT_QPA_PLATFORM", "").lower() == "offscreen":
+            return
         try:
             from PySide6.QtWidgets import QMessageBox
 
