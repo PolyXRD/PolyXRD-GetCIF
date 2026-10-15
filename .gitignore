@@ -1,0 +1,36 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+.pytest_cache/
+.coverage
+htmlcov/
+venv/
+.venv/
+env/
+
+# ---- PyInstaller 构建产物 ----
+build/
+dist/
+_bdist/
+_bwork/
+installer_output/
+
+# ---- 凭证 / 本地配置（禁止提交）----
+credentials.toml
+.env
+*.key
+
+# ---- 运行产物 ----
+logs/
+*.log
+output/
+exports/
+cod_cache/
+downloads/
+
+# ---- IDE ----
+.idea/
+.vscode/

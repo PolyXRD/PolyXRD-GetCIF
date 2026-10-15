@@ -1,0 +1,5 @@
+# bat 脚本必须保留 CRLF（cmd 解析依赖）
+*.bat text eol=crlf
+*.png binary
+*.jpg binary
+*.ico binary

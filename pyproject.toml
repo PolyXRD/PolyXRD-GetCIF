@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "polyxrd-getcif"
+version = "1.0.0"
+description = "PolyXRD GetCIF — CIF 检索与获取小工具（COD / AMCSD / MP / Atomly / 本地库）"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "PolyXRD Team" }]
+license = { text = "MIT" }
+
+[project.gui-scripts]
+getcif = "getcif.gui:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
