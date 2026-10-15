@@ -54,6 +54,7 @@ hiddenimports: list[str] = [
     "getcif.ui.theme",
     "getcif.utils.resources",
     "getcif.utils.edition",
+    "getcif.utils.registration",
     # matplotlib Qt 后端（3D 预览）
     "matplotlib.backends.backend_qtagg",
 ]

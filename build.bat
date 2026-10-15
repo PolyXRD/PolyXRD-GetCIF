@@ -4,10 +4,10 @@ REM -- UTF-8 global: keep console output sane (messages below are ASCII-only;
 REM -- full-width chars in batch lines can desync cmd's parser under cp65001)
 set PYTHONUTF8=1
 set PYTHONIOENCODING=utf-8
-title PolyXRD GetCIF v1.0.0 dual-edition EXE builder
+title PolyXRD GetCIF v1.1.0 dual-edition EXE builder
 
 echo ==========================================
-echo   PolyXRD GetCIF v1.0.0 dual-edition build
+echo   PolyXRD GetCIF v1.1.0 dual-edition build
 echo   [1] Standard  PolyXRD-GetCIF.exe       (no 3D, trimmed Qt, lightweight)
 echo   [2] Plus      PolyXRD-GetCIF-Plus.exe  (3D preview, full Qt)
 echo ==========================================
@@ -15,7 +15,7 @@ echo.
 
 cd /d "%~dp0"
 
-set APPVER=1.0.0
+set APPVER=1.1.0
 
 REM -- Python: prefer PolyXRD venv (PySide6/matplotlib/PyInstaller ready)
 set PYTHON=..\PolyXRD\venv\Scripts\python.exe

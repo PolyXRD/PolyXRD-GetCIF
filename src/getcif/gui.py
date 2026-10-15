@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import os
 import sys
 from pathlib import Path
 from typing import Optional
@@ -85,6 +86,10 @@ def main(argv: Optional[list[str]] = None) -> int:
     _install_crash_handler()
     _setup_logging(logging.DEBUG if args.verbose else logging.INFO, args.log_file)
     logger.info("启动 %s v%s", __app_name__, __version__)
+
+    if args.smoke:
+        # 冒烟模式：禁用未注册启动弹窗（无人点击，且会阻塞离屏测试）
+        os.environ["POLYXRD_REG_NO_PROMPT"] = "1"
 
     try:
         from PySide6.QtGui import QIcon, QPixmap

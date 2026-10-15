@@ -53,6 +53,7 @@ hiddenimports: list[str] = [
     "getcif.ui.theme",
     "getcif.utils.resources",
     "getcif.utils.edition",
+    "getcif.utils.registration",
 ]
 
 # ---- 标准版体积裁剪 ------------------------------------------------------

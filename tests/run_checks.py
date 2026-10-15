@@ -5,7 +5,7 @@
     python tests/run_checks.py --online # 附加在线 COD 实测（需联网）
 
 覆盖：CIF 解析（对称操作数值验证 / esd 剥离 / 分号多行块）、
-MP structure → CIF、本地库检索过滤、3D 渲染、GUI 离屏冒烟。
+MP structure → CIF、本地库检索过滤、3D 渲染、注册机制链路、GUI 离屏冒烟。
 """
 from __future__ import annotations
 
@@ -182,6 +182,47 @@ def test_viewer() -> None:
     check("3D 渲染", ok, viewer.last_message)
 
 
+def test_registration() -> None:
+    """注册机制链路：未注册初始态 → 开发方生成注册码 → 保存/刷新 → 状态栏文案 → 防篡改。"""
+    import json
+
+    from getcif.utils import registration
+
+    with tempfile.TemporaryDirectory() as tmp:
+        state_path = Path(tmp) / "registration.json"
+
+        manager = registration.RegistrationManager("PolyXRD-GetCIF", state_path)
+        check("注册初始态（未注册）", not manager.state.registered)
+        check("状态栏文案（未注册）", manager.label(None).text() == "未注册")
+
+        # 模拟开发方根据「单位部门名称」生成注册码（make_reg_code.py 同逻辑）
+        unit = "某某大学材料科学与工程学院"
+        code = registration.generate_code(unit)
+        check("注册码格式", code.startswith("PXRD1-"))
+        check("注册码校验还原单位名", registration.verify_code(code) == unit)
+        check("注册码容错（小写+空格）",
+              registration.verify_code(code.lower().replace("-", " ")) == unit)
+        check("无效注册码拒绝", registration.verify_code("PXRD1-GARBAGE") is None)
+
+        # 模拟用户在「输入注册码」对话框确认后的落盘
+        state = registration.save_state(state_path, code)
+        check("注册状态保存", state.registered and state.unit == unit)
+        manager.refresh()
+        check("管理器刷新为已注册", manager.state.registered)
+        check("状态栏文案（已注册）",
+              manager.label(None).text() == f"已注册：{unit}")
+
+        # 离屏环境下启动提示被跳过（不弹窗、不阻塞）
+        skipped = registration.startup_prompt(None, Path(tmp) / "none.json", "PolyXRD-GetCIF")
+        check("离屏跳过启动弹窗", not skipped.registered)
+
+        # 手改状态文件伪造注册 → 必须失效
+        data = json.loads(state_path.read_text(encoding="utf-8"))
+        data["unit"] = "篡改单位"
+        state_path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+        check("防手改伪造", not registration.load_state(state_path).registered)
+
+
 def test_gui_smoke() -> None:
     """GUI 冒烟走子进程（QApplication 单例不可在同进程重建）。"""
     import subprocess
@@ -220,6 +261,7 @@ def main() -> int:
     test_mp_structure_to_cif()
     test_cod_local()
     test_viewer()
+    test_registration()
     test_gui_smoke()
     if "--online" in sys.argv:
         test_cod_online()

@@ -25,6 +25,7 @@ from getcif.ui.result_table import ResultTable
 from getcif.ui.search_panel import SearchPanel
 from getcif.ui.settings_dialog import SettingsDialog
 from getcif.ui.theme import build_qss
+from getcif.utils import registration
 from getcif.utils.resources import get_app_icon_path
 
 _SOURCE_LABELS = {
@@ -40,6 +41,10 @@ class MainWindow(QMainWindow):
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
         init_language()
+        registration.set_language(config.load_language())
+        self._reg = registration.RegistrationManager(
+            __app_name__, config.app_config_dir() / "registration.json"
+        )
         self.worker: Optional[SearchWorker] = None
         self._status_timer = QTimer(self)
         self._status_timer.setSingleShot(True)
@@ -55,6 +60,8 @@ class MainWindow(QMainWindow):
         self._build_body()
         self._build_statusbar()
         self._update_source_hint()
+        # 未注册启动提示：窗口显示后弹出（QTimer 保证冒烟测试不阻塞）
+        QTimer.singleShot(0, lambda: self._reg.startup_check(self))
 
     # ------------------------------------------------------------------
     def _build_menu(self) -> None:
@@ -87,6 +94,7 @@ class MainWindow(QMainWindow):
 
         # 帮助菜单
         help_menu = menu_bar.addMenu(tr("帮助 (&H)"))
+        self._reg.add_help_action(help_menu, self)
         about_action = QAction(tr("关于 {} (&A)").format(__app_name__), self)
         about_action.triggered.connect(self._open_about)
         help_menu.addAction(about_action)
@@ -115,6 +123,8 @@ class MainWindow(QMainWindow):
         self.progress.setRange(0, 0)  # busy
         self.progress.setVisible(False)
         status_bar.addPermanentWidget(self.progress)
+        # 最下面一排最右侧（右对齐）：注册的单位部门名称 / 未注册
+        self._reg.attach_status_label(status_bar, self)
         self.set_status(tr("就绪 —— 输入检索条件后点击「检索」"))
 
     # ------------------------------------------------------------------
@@ -208,6 +218,7 @@ class MainWindow(QMainWindow):
     def _switch_language(self, code: str) -> None:
         set_language(code)
         config.save_language(code)
+        registration.set_language(code)
         # 重建菜单与中央部件，让全部文案立即切换
         self.menuBar().clear()
         self._build_menu()
