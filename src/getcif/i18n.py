@@ -147,6 +147,8 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
     "选择目录": {"en": "Select Folder", "ja": "フォルダーを選択"},
     # ---- 关于 ----
     "关于": {"en": "About", "ja": "バージョン情報"},
+    # ---- 构建变体 ----
+    "内部评估版本": {"en": "Internal Evaluation Edition", "ja": "内部評価版"},
     "CIF 检索与获取小工具": {"en": "CIF Search & Fetch Tool", "ja": "CIF 検索・取得ツール"},
     "数据源：COD · AMCSD · Materials Project · Atomly · 本地库": {
         "en": "Sources: COD · AMCSD · Materials Project · Atomly · Local",

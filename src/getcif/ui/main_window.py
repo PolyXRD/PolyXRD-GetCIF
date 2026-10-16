@@ -7,6 +7,7 @@ from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QAction, QActionGroup, QIcon
 from PySide6.QtWidgets import (
     QHBoxLayout,
+    QLabel,
     QMainWindow,
     QMessageBox,
     QProgressBar,
@@ -26,6 +27,7 @@ from getcif.ui.search_panel import SearchPanel
 from getcif.ui.settings_dialog import SettingsDialog
 from getcif.ui.theme import build_qss
 from getcif.utils import registration
+from getcif.utils.build_variant import is_internal_edition
 from getcif.utils.resources import get_app_icon_path
 
 _SOURCE_LABELS = {
@@ -41,10 +43,14 @@ class MainWindow(QMainWindow):
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
         init_language()
-        registration.set_language(config.load_language())
-        self._reg = registration.RegistrationManager(
-            __app_name__, config.app_config_dir() / "registration.json"
-        )
+        # 内部评估版（Internal spec 注入标记）：停用注册机制，状态栏显示「内部评估版本」
+        self._internal = is_internal_edition()
+        self._reg: Optional[registration.RegistrationManager] = None
+        if not self._internal:
+            registration.set_language(config.load_language())
+            self._reg = registration.RegistrationManager(
+                __app_name__, config.app_config_dir() / "registration.json"
+            )
         self.worker: Optional[SearchWorker] = None
         self._status_timer = QTimer(self)
         self._status_timer.setSingleShot(True)
@@ -60,8 +66,9 @@ class MainWindow(QMainWindow):
         self._build_body()
         self._build_statusbar()
         self._update_source_hint()
-        # 未注册启动提示：窗口显示后弹出（QTimer 保证冒烟测试不阻塞）
-        QTimer.singleShot(0, lambda: self._reg.startup_check(self))
+        if self._reg is not None:
+            # 未注册启动提示：窗口显示后弹出（QTimer 保证冒烟测试不阻塞）
+            QTimer.singleShot(0, lambda: self._reg.startup_check(self))
 
     # ------------------------------------------------------------------
     def _build_menu(self) -> None:
@@ -94,7 +101,8 @@ class MainWindow(QMainWindow):
 
         # 帮助菜单
         help_menu = menu_bar.addMenu(tr("帮助 (&H)"))
-        self._reg.add_help_action(help_menu, self)
+        if self._reg is not None:
+            self._reg.add_help_action(help_menu, self)
         about_action = QAction(tr("关于 {} (&A)").format(__app_name__), self)
         about_action.triggered.connect(self._open_about)
         help_menu.addAction(about_action)
@@ -123,8 +131,17 @@ class MainWindow(QMainWindow):
         self.progress.setRange(0, 0)  # busy
         self.progress.setVisible(False)
         status_bar.addPermanentWidget(self.progress)
-        # 最下面一排最右侧（右对齐）：注册的单位部门名称 / 未注册
-        self._reg.attach_status_label(status_bar, self)
+        # 最下面一排最右侧（右对齐）：注册的单位部门名称 / 未注册；
+        # 内部评估版固定显示「内部评估版本」
+        self._internal_label: Optional[QLabel] = None
+        if self._reg is not None:
+            self._reg.attach_status_label(status_bar, self)
+        else:
+            self._internal_label = QLabel(tr("内部评估版本"))
+            self._internal_label.setAlignment(
+                Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
+            )
+            status_bar.addPermanentWidget(self._internal_label, 1)
         self.set_status(tr("就绪 —— 输入检索条件后点击「检索」"))
 
     # ------------------------------------------------------------------
@@ -219,6 +236,11 @@ class MainWindow(QMainWindow):
         set_language(code)
         config.save_language(code)
         registration.set_language(code)
+        # 状态栏右侧文案随语言刷新
+        if self._reg is not None:
+            self._reg.refresh()
+        elif self._internal_label is not None:
+            self._internal_label.setText(tr("内部评估版本"))
         # 重建菜单与中央部件，让全部文案立即切换
         self.menuBar().clear()
         self._build_menu()

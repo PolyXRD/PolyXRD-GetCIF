@@ -1,0 +1,72 @@
+# -*- coding: utf-8 -*-
+"""内部评估版（POLYXRD_GETCIF_INTERNAL=1）主窗口行为验证：
+
+* 注册机制整体停用（无 RegistrationManager、无「输入注册码」菜单项）；
+* 状态栏最右侧右对齐显示「内部评估版本」；
+* 语言切换后该文案同步三语。
+
+用法：python tests/_internal_edition_check.py  （自身设 offscreen 环境变量）
+"""
+from __future__ import annotations
+
+import os
+import sys
+from pathlib import Path
+
+os.environ["QT_QPA_PLATFORM"] = "offscreen"
+os.environ["POLYXRD_GETCIF_INTERNAL"] = "1"
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QApplication
+
+from getcif.utils.build_variant import is_internal_edition
+
+app = QApplication([])
+
+assert is_internal_edition(), "env var force failed"
+print("[PASS] 环境变量强制内部模式")
+
+from getcif.ui.main_window import MainWindow  # noqa: E402
+
+window = MainWindow()
+window.show()
+assert window._internal is True
+assert window._reg is None
+print("[PASS] 内部模式：注册管理器未创建（无启动提示 / 无输入注册码菜单）")
+
+# 帮助菜单不应包含「输入注册码」
+menu_texts = []
+for action in window.menuBar().actions():
+    if action.menu() is not None:
+        menu_texts += [a.text() for a in action.menu().actions()]
+assert not any("注册" in t for t in menu_texts), menu_texts
+print("[PASS] 帮助菜单无「输入注册码」入口")
+
+# 状态栏：右侧右对齐「内部评估版本」，且是最右常驻控件
+bar = window.statusBar()
+label = window._internal_label
+assert label is not None
+assert label.text() == "内部评估版本", label.text()
+assert label.alignment() & Qt.AlignmentFlag.AlignRight
+print("[PASS] 状态栏显示「内部评估版本」（右对齐）")
+
+label_right = label.mapTo(bar, label.rect().topRight()).x()
+GRIP_MARGIN = 40
+assert label_right >= bar.width() - GRIP_MARGIN, (label_right, bar.width())
+print(f"[PASS] 标签位于状态栏最右侧（右端 {label_right}，状态栏宽 {bar.width()}）")
+
+# 语言切换 → 三语文案同步
+window._switch_language("en")
+assert window._internal_label.text() == "Internal Evaluation Edition", (
+    window._internal_label.text()
+)
+window._switch_language("ja")
+assert window._internal_label.text() == "内部評価版", window._internal_label.text()
+window._switch_language("zh")
+assert window._internal_label.text() == "内部评估版本"
+print("[PASS] 语言切换：en / ja / zh 三语文案同步")
+
+window.close()
+print("内部评估版链路全部通过")

@@ -4,14 +4,18 @@
 
 ![logo](resources/logo-horizontal.png)
 
-## 两个版本
+## 版本与发布形态
 
-| 版本 | 下载 | 体积 | 差异 |
-|---|---|---|---|
-| **标准版** | `PolyXRD-GetCIF.exe` | ~106 MB | 检索 / 预览 / 下载全功能；**不含 3D 预览**（matplotlib/numpy 已裁剪 + Qt 未用模块精简） |
-| **Plus 版** | `PolyXRD-GetCIF-Plus.exe` | ~269 MB | 含**应用内 3D 结构展示**（对称操作展开渲染）+ 完整 Qt，为后续功能扩展预留 |
+| 形态 | 文件 | 体积 | 注册机制 | 适用 |
+|---|---|---|---|---|
+| **标准版**（单文件） | `PolyXRD-GetCIF.exe` | ~106 MB | ✅ | 检索 / 预览 / 下载全功能；**不含 3D 预览**（matplotlib/numpy 已裁剪 + Qt 未用模块精简） |
+| **Plus 版**（单文件） | `PolyXRD-GetCIF-Plus.exe` | ~269 MB | ✅ | 含**应用内 3D 结构展示**（对称操作展开渲染）+ 完整 Qt，为后续功能扩展预留 |
+| **内部评估版**（单文件） | `PolyXRD-GetCIF-Internal.exe` | ~269 MB | ❌ 停用 | 内部评估自用：Plus 基底（含 3D），无注册提示/注册码入口，状态栏右侧固定显示「内部评估版本」 |
+| **安装包**（Setup） | `PolyXRD-GetCIF-Setup.exe` / `PolyXRD-GetCIF-Plus-Setup.exe` | ~100/270 MB | ✅ | 正常安装流程：可选安装位置、开始菜单/桌面快捷方式、带卸载；onedir 版启动免自解压；装后每次启动检查注册（同单文件版） |
 
-两个版本检索能力完全一致（COD / 本地库 / AMCSD / MP / Atomly）；标准版预览窗会提示升级 Plus。
+标准版 / Plus 版 / 安装包：未注册每次启动提示版权信息，注册后状态栏右侧显示单位部门名称；
+**内部评估版**注册机制整体停用。两个单文件版检索能力完全一致（COD / 本地库 / AMCSD / MP / Atomly）；
+标准版预览窗会提示升级 Plus。
 
 ## 功能
 
@@ -31,7 +35,7 @@
 
 ## 注册机制
 
-复用 PolyXRD 家族统一注册机制（与 PolyXRD-Reg 注册机算法一致）：
+复用 PolyXRD 家族统一注册机制（与 PolyXRD-Reg 注册机算法一致）；**内部评估版（Internal）整体停用注册机制**，不受本节约束：
 
 | 场景 | 行为 |
 |---|---|
@@ -59,15 +63,21 @@ python -m getcif.gui
 QT_QPA_PLATFORM=offscreen python -m getcif.gui --smoke --no-splash
 ```
 
-## 打包双版本 exe
+## 打包全版本
 
 ```bat
 build.bat
-:: 产物: dist\PolyXRD-GetCIF.exe       （标准版，去3D+裁剪Qt）
-::       dist\PolyXRD-GetCIF-Plus.exe  （Plus 版，含3D+全量Qt）
+:: 产物: dist\PolyXRD-GetCIF.exe                 （标准版 onefile，去3D+裁剪Qt）
+::       dist\PolyXRD-GetCIF-Plus.exe            （Plus 版 onefile，含3D+全量Qt）
+::       dist\PolyXRD-GetCIF-Internal.exe        （内部评估版 onefile，Plus基底+无注册）
+::       dist\PolyXRD-GetCIF\                    （标准版 onedir，供安装包）
+::       dist\PolyXRD-GetCIF-Plus\               （Plus 版 onedir，供安装包）
+::       installer\Output\PolyXRD-GetCIF-Setup.exe       （标准版安装包）
+::       installer\Output\PolyXRD-GetCIF-Plus-Setup.exe  （Plus 版安装包）
 ```
 
-构建脚本为纯 ASCII + CRLF（cmd 在 cp65001 下解析含全角字符的批处理行可能错位）。
+构建脚本为纯 ASCII + CRLF（cmd 在 cp65001 下解析含全角字符的批处理行可能错位）；
+安装包需要 Inno Setup 6（未安装时自动跳过 Setup 步骤）。
 
 ## 配置存储
 

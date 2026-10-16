@@ -238,6 +238,20 @@ def test_gui_smoke() -> None:
     check("GUI 离屏冒烟（子进程）", result.returncode == 0, result.stdout.strip()[-80:])
 
 
+def test_internal_edition() -> None:
+    """内部评估版链路（子进程）：无注册机制、状态栏「内部评估版本」、三语切换。"""
+    import subprocess
+
+    root = Path(__file__).resolve().parent.parent
+    result = subprocess.run(
+        [sys.executable, str(root / "tests" / "_internal_edition_check.py")],
+        capture_output=True, text=True, timeout=120, cwd=str(root),
+    )
+    tail = (result.stdout or "").strip().splitlines()
+    detail = tail[-1] if tail else (result.stderr or "").strip()[-120:]
+    check("内部评估版链路（子进程）", result.returncode == 0, detail)
+
+
 def test_cod_online() -> None:
     from getcif.adapters.cod import CodAdapter
     from getcif.core.schema import SearchQuery
@@ -262,6 +276,7 @@ def main() -> int:
     test_cod_local()
     test_viewer()
     test_registration()
+    test_internal_edition()
     test_gui_smoke()
     if "--online" in sys.argv:
         test_cod_online()
