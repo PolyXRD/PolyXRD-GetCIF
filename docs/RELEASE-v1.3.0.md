@@ -8,7 +8,7 @@
 
 | 主窗口 | 数据源设置 | 版权与许可 |
 |---|---|---|
-| ![主窗口](screenshots-v1.3.0/main_light.png) | ![设置](screenshots-v1.3.0/settings_light.png) | ![许可](screenshots-v1.3.0/license_light.png) |
+| ![主窗口](docs/screenshots-v1.3.0/main_light.png) | ![设置](docs/screenshots-v1.3.0/settings_light.png) | ![许可](docs/screenshots-v1.3.0/license_light.png) |
 
 ## 📦 本版本发布形态
 
