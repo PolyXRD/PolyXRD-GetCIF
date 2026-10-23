@@ -10,17 +10,17 @@
 |---|---|---|
 | ![主窗口](screenshots-v1.3.0/main_light.png) | ![设置](screenshots-v1.3.0/settings_light.png) | ![许可](screenshots-v1.3.0/license_light.png) |
 
-## 📦 发布形态（按需下载其一即可）
+## 📦 本版本发布形态
 
-| 形态 | 资产 | 体积 | 注册机制 | 适用 |
-|---|---|---|---|---|
-| **标准版** | `PolyXRD-GetCIF.exe` | ~106 MB | ✅ | 单文件免安装；检索 / 预览 / 下载全功能，无 3D |
-| **Plus 版** | `PolyXRD-GetCIF-Plus.exe` | ~269 MB | ✅ | 单文件免安装；含**应用内 3D 结构展示** + 完整 Qt |
-| **内部评估版** | `PolyXRD-GetCIF-Internal.exe` | ~269 MB | ❌ 停用 | 内部评估自用；Plus 基底（含 3D），状态栏右侧固定显示「内部评估版本」 |
-| **标准版安装包** | `PolyXRD-GetCIF-Setup.exe` | ~40-60 MB | ✅ | 正常安装流程（可选安装位置、快捷方式、卸载） |
-| **Plus 版安装包** | `PolyXRD-GetCIF-Plus-Setup.exe` | ~100-120 MB | ✅ | 同上（含 3D） |
+本版本 **仅发布以下两个资产**（其余版本不随本 release 发布）：
 
-单文件版首次启动解压需数秒；安装包装入本机磁盘后**启动免自解压**，更快。
+| 资产 | 体积 | 注册机制 | 适用 |
+|---|---|---|---|
+| `PolyXRD-GetCIF-Internal.exe` | ~234 MB | ❌ 停用 | **内部评估版**：Plus 基底（含应用内 3D 结构展示 + 完整 Qt），状态栏右侧固定显示「内部评估版本」 |
+| `PolyXRD-GetCIF-Plus-Setup.exe` | ~100-120 MB | ✅ | **Plus 版安装包**：正常安装流程（可选安装位置 / 快捷方式 / 卸载），含 3D + 完整 Qt，启动免自解压 |
+
+> 说明：标准单文件版、Plus 单文件版、标准安装包不在本 release 发布范围内。
+> 单文件版首次启动解压需数秒；安装包装入本机磁盘后启动免自解压，更快。
 
 ## ✨ v1.3.0 更新
 
