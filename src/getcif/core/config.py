@@ -22,7 +22,16 @@ _cache: Optional[dict] = None
 
 
 def app_config_dir() -> Path:
-    """用户配置目录（``%APPDATA%/PolyXRD/GetCIF``，非 Windows 回退 ~/.polyxrd）。"""
+    """用户配置目录（``%APPDATA%/PolyXRD/GetCIF``，非 Windows 回退 ~/.polyxrd）。
+
+    可用环境变量 ``POLYXRD_GETCIF_CONFIG_DIR`` 覆盖（测试 / 便携场景），
+    自检脚本借此隔离临时配置，避免写入用户真实设置。
+    """
+    override = os.environ.get("POLYXRD_GETCIF_CONFIG_DIR")
+    if override:
+        path = Path(override)
+        path.mkdir(parents=True, exist_ok=True)
+        return path
     base = os.environ.get("APPDATA")
     if base:
         path = Path(base) / APP_VENDOR / APP_DIR_NAME
@@ -178,6 +187,8 @@ DEFAULTS = {
         "amcsd_enabled": False,     # 以下联网源在用户配置完成后开启
         "mp_enabled": False,
         "atomly_enabled": False,
+        "polydb_enabled": True,     # polyDB 外挂库：默认开启（配置目录后生效）
+        "xindb_enabled": True,      # xinDB 库：默认开启（配置文件后生效）
     },
     "net": {"timeout": 30},
 }
@@ -218,3 +229,13 @@ def cod_local_db() -> str:
 
 def cod_local_root() -> str:
     return str(get("local", "cod_root", "") or "").strip()
+
+
+def polydb_path() -> str:
+    """polyDB 外挂库目录（PolyXRD v4 目录容器：meta.json + index.sqlite + 数组段）。"""
+    return str(get("local", "polydb_path", "") or "").strip()
+
+
+def xindb_path() -> str:
+    """xinDB v3 库文件（XinMatch 列存参考库，单文件 .xinDB）。"""
+    return str(get("local", "xindb_path", "") or "").strip()

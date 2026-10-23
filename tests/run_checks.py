@@ -5,11 +5,16 @@
     python tests/run_checks.py --online # 附加在线 COD 实测（需联网）
 
 覆盖：CIF 解析（对称操作数值验证 / esd 剥离 / 分号多行块）、
-MP structure → CIF、本地库检索过滤、3D 渲染、注册机制链路、GUI 离屏冒烟。
+MP structure → CIF、本地库检索过滤（COD 索引 / polyDB / xinDB）、
+明亮模式主题与帮助菜单、3D 渲染、注册机制链路、GUI 离屏冒烟。
+
+配置隔离：自检在独立临时配置目录中进行（POLYXRD_GETCIF_CONFIG_DIR），
+不读写用户真实 settings.toml。
 """
 from __future__ import annotations
 
 import gzip
+import json
 import os
 import sqlite3
 import sys
@@ -19,6 +24,13 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+
+# 自检隔离：配置目录指向临时目录，避免污染用户真实 settings.toml
+# （必须在任何 getcif 模块导入/调用前设置；config.app_config_dir 每次调用时读取）
+_CONFIG_ISOLATION = os.environ.setdefault(
+    "POLYXRD_GETCIF_CONFIG_DIR",
+    str(Path(tempfile.mkdtemp(prefix="getcif-checks-"))),
+)
 
 SAMPLE_CIF = """data_1010921
 _cell_length_a 4.9134
@@ -169,6 +181,152 @@ def test_cod_local() -> None:
     check("本地库晶系过滤（立方=0）", len(adapter.search(SearchQuery(crystal_system="cubic", limit=10))) == 0)
 
 
+def _make_temp_polydb() -> tuple[Path, Path]:
+    """构造临时 polyDB 目录容器（meta.json + index.sqlite）+ 数据根目录下的 CIF。"""
+    tmp = Path(tempfile.mkdtemp())
+    db_dir = tmp / "cod-inorg"
+    db_dir.mkdir()
+    (db_dir / "meta.json").write_text(json.dumps({
+        "format": "polyDB", "schema_version": 1, "variant": "cod-inorg",
+        "counts": {"phases": 1, "k": 4, "peaks": 4, "sites": 2},
+    }), encoding="utf-8")
+    conn = sqlite3.connect(db_dir / "index.sqlite")
+    conn.execute("""CREATE TABLE entries (
+        eid INTEGER PRIMARY KEY, formula TEXT, formula_red TEXT, mineral TEXT,
+        space_group TEXT, sg_number INTEGER, elements TEXT,
+        a REAL, b REAL, c REAL, alpha REAL, beta REAL, gamma REAL,
+        volume REAL, density REAL, z INTEGER, n_peaks INTEGER,
+        tier INTEGER DEFAULT 0, dup_group INTEGER DEFAULT 0,
+        cif_rel TEXT, src_mtime INTEGER, row_idx INTEGER)""")
+    conn.execute(
+        "INSERT INTO entries VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+        (1010921, "O2 Si", "O2 Si", "Quartz", "P 32 2 1", 154, "O,Si",
+         4.9134, 4.9134, 5.4052, 90, 90, 120, 113.0, 2.65, 3, 4, 0, 0,
+         "cifs/1010921.cif", 0, 0))
+    conn.commit()
+    conn.close()
+    cif_path = tmp / "cifs" / "1010921.cif"   # cif_rel 相对数据根目录
+    cif_path.parent.mkdir(parents=True)
+    cif_path.write_text(SAMPLE_CIF, encoding="utf-8")
+    return db_dir, tmp
+
+
+def test_polydb() -> None:
+    from getcif.adapters.base import AdapterError
+    from getcif.adapters.polydb import PolyDbAdapter, probe_polydb
+    from getcif.core import config as cfg
+    from getcif.core.schema import SearchQuery
+
+    db_dir, tmp = _make_temp_polydb()
+    cfg.save("local", {"polydb_path": str(db_dir), "cod_root": str(tmp)})
+    cfg.set_source_enabled("polydb", True)
+    ok, reason = probe_polydb(db_dir)
+    check("polyDB 目录判别", ok, reason)
+    ok2, reason2 = probe_polydb(tmp)   # 数据根目录本身不是 polyDB
+    check("polyDB 拒绝非库目录", not ok2 and reason2 == "missing:meta.json", reason2)
+    adapter = PolyDbAdapter(timeout=10)
+    check("polyDB 可用性", adapter.is_available())
+    cands = adapter.search(SearchQuery(formula="SiO2", limit=10))
+    check("polyDB 化学式检索", len(cands) == 1 and cands[0].source_id == "1010921")
+    text = adapter.download_cif(cands[0])
+    check("polyDB cif_rel 取回", bool(text) and "data_1010921" in text)
+    check("polyDB 空间群过滤", len(adapter.search(SearchQuery(space_group="154", limit=10))) == 1)
+    check("polyDB 晶系过滤（三方）", len(adapter.search(SearchQuery(crystal_system="三方", limit=10))) == 1)
+    check("polyDB 晶系过滤（立方=0）", len(adapter.search(SearchQuery(crystal_system="cubic", limit=10))) == 0)
+    check("polyDB 名称过滤", len(adapter.search(SearchQuery(name="quartz", limit=10))) == 1)
+    cfg.set_source_enabled("polydb", False)
+    check("polyDB 关闭后不可用", not adapter.is_available())
+    check("polyDB 关闭后原因", "关闭" in adapter.availability_reason(),
+          adapter.availability_reason())
+    cfg.set_source_enabled("polydb", True)
+    check("polyDB 重新开启后可用", adapter.is_available())
+
+
+def _make_temp_xindb() -> Path:
+    """构造临时 xinDB v3 单文件（meta / entries / peak_chunks）。"""
+    tmp = Path(tempfile.mkdtemp())
+    db_path = tmp / "cod_inorganics.xinDB"
+    conn = sqlite3.connect(db_path)
+    conn.executescript("""
+        CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT);
+        CREATE TABLE entries (
+            entry_id TEXT PRIMARY KEY, formula TEXT, space_group TEXT,
+            crystal_system TEXT, mineral_name TEXT, elements TEXT, elem_mask INTEGER,
+            a REAL, b REAL, c REAL, alpha REAL, beta REAL, gamma REAL,
+            volume REAL, density REAL, year INTEGER, author TEXT, journal TEXT,
+            quality TEXT, n_peaks INTEGER, peak_off INTEGER, peak_n INTEGER,
+            tier INTEGER DEFAULT 1);
+        CREATE TABLE peak_chunks (
+            chunk_id INTEGER PRIMARY KEY, n INTEGER,
+            top_d BLOB, top_i BLOB, all_d BLOB, all_i BLOB);
+    """)
+    conn.execute("INSERT INTO meta (key, value) VALUES ('schema_version', '3')")
+    conn.execute("INSERT INTO meta (key, value) VALUES ('entry_count', '1')")
+    conn.execute(
+        "INSERT INTO entries VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+        ("96-101-0921", "O2 Si", "P 32 2 1", "trigonal", "Quartz", "O,Si", 0,
+         4.9134, 4.9134, 5.4052, 90, 90, 120, 113.0, 2.65, 2001, "", "", "",
+         4, 0, 4, 1))
+    conn.execute("INSERT INTO peak_chunks VALUES (0, 1, X'00', X'00', X'00', X'00')")
+    conn.commit()
+    conn.close()
+    return db_path
+
+
+def test_xindb() -> None:
+    from getcif.adapters.base import AdapterError
+    from getcif.adapters.xindb import XinDbAdapter, probe_xindb
+    from getcif.core import config as cfg
+    from getcif.core.schema import SearchQuery
+
+    db_path = _make_temp_xindb()
+    cfg.save("local", {"xindb_path": str(db_path)})
+    cfg.set_source_enabled("xindb", True)
+    ok, reason = probe_xindb(db_path)
+    check("xinDB 库判别", ok, reason)
+    ok2, reason2 = probe_xindb(db_path.parent)   # 目录不是文件
+    check("xinDB 拒绝非文件", not ok2 and reason2 == "not_a_file", reason2)
+    adapter = XinDbAdapter(timeout=10)
+    check("xinDB 可用性", adapter.is_available())
+    cands = adapter.search(SearchQuery(formula="SiO2", limit=10))
+    check("xinDB 化学式检索", len(cands) == 1 and cands[0].source_id == "96-101-0921")
+    check("xinDB 空间群文本过滤", len(adapter.search(SearchQuery(space_group="P 32 2 1", limit=10))) == 1)
+    check("xinDB 晶系过滤（三方）", len(adapter.search(SearchQuery(crystal_system="三方", limit=10))) == 1)
+    check("xinDB 晶系直查（trigonal）", len(adapter.search(SearchQuery(crystal_system="trigonal", limit=10))) == 1)
+    check("xinDB 晶系过滤（立方=0）", len(adapter.search(SearchQuery(crystal_system="cubic", limit=10))) == 0)
+    check("xinDB 晶胞过滤", len(adapter.search(SearchQuery(a=4.9, b=4.9, c=5.4, limit=10))) == 1)
+    try:
+        adapter.download_cif(cands[0])
+        check("xinDB 无 CIF 原文（应抛 AdapterError）", False)
+    except AdapterError:
+        check("xinDB 无 CIF 原文（应抛 AdapterError）", True)
+
+
+def test_theme_and_help_menu() -> None:
+    """明亮模式主题 + 帮助菜单「版权与许可」。"""
+    from PySide6.QtWidgets import QApplication
+
+    from getcif.ui.main_window import MainWindow
+    from getcif.ui.theme import BG, build_qss
+
+    qss = build_qss()
+    check("明亮模式底色（#F2F5F8）", BG == "#F2F5F8" and "#F2F5F8" in qss)
+    check("明亮模式不含暗黑底色", "#0B1524" not in qss and "#101E31" not in qss)
+
+    app = QApplication.instance() or QApplication([])
+    window = MainWindow()
+    help_menu = None
+    for action in window.menuBar().actions():
+        if action.menu() is not None and action.text() == "帮助 (&H)":
+            help_menu = action.menu()
+    check("帮助菜单存在", help_menu is not None)
+    if help_menu is not None:
+        texts = [a.text() for a in help_menu.actions()]
+        check("帮助菜单含「版权与许可」", "版权与许可 (&L)" in texts, str(texts))
+        check("帮助菜单含「关于」", any(t.startswith("关于") for t in texts), str(texts))
+    window.close()
+
+
 def test_viewer() -> None:
     from PySide6.QtWidgets import QApplication
 
@@ -274,6 +432,9 @@ def main() -> int:
     test_cif_parse()
     test_mp_structure_to_cif()
     test_cod_local()
+    test_polydb()
+    test_xindb()
+    test_theme_and_help_menu()
     test_viewer()
     test_registration()
     test_internal_edition()

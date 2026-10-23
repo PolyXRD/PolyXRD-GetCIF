@@ -21,6 +21,7 @@ from getcif.core.schema import SearchQuery
 from getcif.i18n import SUPPORTED_LANGUAGES, init_language, set_language, tr
 from getcif.search import SearchWorker
 from getcif.ui.about_dialog import AboutDialog
+from getcif.ui.license_dialog import show_license
 from getcif.ui.preview_dialog import PreviewDialog
 from getcif.ui.result_table import ResultTable
 from getcif.ui.search_panel import SearchPanel
@@ -36,6 +37,8 @@ _SOURCE_LABELS = {
     "amcsd": "AMCSD（联网）",
     "mp": "MP（联网）",
     "atomly": "Atomly（联网）",
+    "polydb": "polyDB 外挂库",
+    "xindb": "xinDB 库",
 }
 
 
@@ -103,6 +106,9 @@ class MainWindow(QMainWindow):
         help_menu = menu_bar.addMenu(tr("帮助 (&H)"))
         if self._reg is not None:
             self._reg.add_help_action(help_menu, self)
+        license_action = QAction(tr("版权与许可 (&L)"), self)
+        license_action.triggered.connect(self._on_license)
+        help_menu.addAction(license_action)
         about_action = QAction(tr("关于 {} (&A)").format(__app_name__), self)
         about_action.triggered.connect(self._open_about)
         help_menu.addAction(about_action)
@@ -179,7 +185,7 @@ class MainWindow(QMainWindow):
     def _any_source_enabled(self) -> bool:
         return any(
             config.source_enabled(name)
-            for name in ("cod", "amcsd", "mp", "atomly", "local")
+            for name in ("cod", "amcsd", "mp", "atomly", "local", "polydb", "xindb")
         )
 
     def _on_source_status(self, source: str, status: str, detail: str) -> None:
@@ -253,6 +259,10 @@ class MainWindow(QMainWindow):
 
     def _open_about(self) -> None:
         AboutDialog(self).exec()
+
+    def _on_license(self) -> None:
+        """显示版权 / 许可对话框（与「关于」并列）。"""
+        show_license(self)
 
     # ------------------------------------------------------------------
     def closeEvent(self, event) -> None:  # noqa: N802

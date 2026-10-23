@@ -65,7 +65,7 @@ class PreviewDialog(QDialog):
         def _value_label(text: str) -> QLabel:
             label = QLabel(text)
             label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
-            label.setStyleSheet("color:#CFE7F7;")
+            label.setStyleSheet("color:#333F4E;")
             return label
 
         lattice = cand.lattice
@@ -80,7 +80,7 @@ class PreviewDialog(QDialog):
         ]
         for name, value in rows:
             name_label = QLabel(name)
-            name_label.setStyleSheet("color:#8FB6D9; font-weight:600;")
+            name_label.setStyleSheet("color:#5B6B7C; font-weight:600;")
             form.addRow(name_label, _value_label(value))
         root.addWidget(info_box)
 

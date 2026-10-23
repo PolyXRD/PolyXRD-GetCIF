@@ -7,9 +7,14 @@ from getcif.adapters.base import AdapterError, BaseAdapter
 from getcif.adapters.cod import CodAdapter
 from getcif.adapters.cod_local import CodLocalAdapter
 from getcif.adapters.mp import MpAdapter
+from getcif.adapters.polydb import PolyDbAdapter
+from getcif.adapters.xindb import XinDbAdapter
 
-#: 检索顺序（COD 优先，本地兜底）
-ADAPTER_CLASSES = [CodAdapter, AmcsdAdapter, MpAdapter, AtomlyAdapter, CodLocalAdapter]
+#: 检索顺序（COD 优先，本地库兜底：COD 索引 / polyDB / xinDB）
+ADAPTER_CLASSES = [
+    CodAdapter, AmcsdAdapter, MpAdapter, AtomlyAdapter,
+    CodLocalAdapter, PolyDbAdapter, XinDbAdapter,
+]
 
 
 def create_adapters(timeout: int) -> list[BaseAdapter]:
@@ -26,5 +31,7 @@ __all__ = [
     "CodAdapter",
     "CodLocalAdapter",
     "MpAdapter",
+    "PolyDbAdapter",
+    "XinDbAdapter",
     "create_adapters",
 ]

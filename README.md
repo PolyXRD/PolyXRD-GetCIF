@@ -14,7 +14,7 @@
 | **安装包**（Setup） | `PolyXRD-GetCIF-Setup.exe` / `PolyXRD-GetCIF-Plus-Setup.exe` | ~100/270 MB | ✅ | 正常安装流程：可选安装位置、开始菜单/桌面快捷方式、带卸载；onedir 版启动免自解压；装后每次启动检查注册（同单文件版） |
 
 标准版 / Plus 版 / 安装包：未注册每次启动提示版权信息，注册后状态栏右侧显示单位部门名称；
-**内部评估版**注册机制整体停用。两个单文件版检索能力完全一致（COD / 本地库 / AMCSD / MP / Atomly）；
+**内部评估版**注册机制整体停用。两个单文件版检索能力完全一致（COD / 本地库 / polyDB / xinDB / AMCSD / MP / Atomly）；
 标准版预览窗会提示升级 Plus。
 
 ## 功能
@@ -24,6 +24,8 @@
   |---|---|---|
   | COD（联网） | Crystallography Open Database，无需凭证 | ✅ 开启 |
   | COD 本地库 | SQLite 检索索引（兼容 PolyXRD 全库 `cod_index.sqlite`） | 配置后开启 |
+  | polyDB 外挂库 | PolyXRD v4 目录容器（`meta.json` + `index.sqlite`）；CIF 按 `cif_rel` 相对数据根目录解析 | 配置后开启 |
+  | xinDB 库 | XinMatch v3 单文件（`.xinDB`）；仅元数据检索，不含 CIF 原文 | 配置后开启 |
   | AMCSD（联网） | rruff.geo.arizona.edu，无需凭证 | 手动开启 |
   | Materials Project | 需免费 API Key（materialsproject.org） | 配置后开启 |
   | Atomly | 需 Token（atomly.net 登录后 localStorage 取 `userToken`） | 配置后开启 |
@@ -31,7 +33,8 @@
 - **候选预览**：双击结果行弹出预览窗 —— 结构信息、CIF 全文、3D 结构展示（Plus 版）、下载/另存
 - **三语界面**：中文 / English / 日本語（菜单即时切换）
 - **注册机制**：未注册每次启动提示版权信息；输入注册码后状态栏右侧显示注册单位
-- **PolyXRD 主题**：与家族一致的 logo、splash、深海军蓝 + 青色配色
+- **帮助菜单**：版权与许可（双许可说明）· 关于
+- **明亮模式界面**：与家族工具一致的浅色接口（PolyXRD 青色强调）
 
 ## 注册机制
 
@@ -82,9 +85,11 @@ build.bat
 ## 配置存储
 
 `%APPDATA%\PolyXRD\GetCIF\settings.toml`（数据源开关、凭证、索引路径、语言）；
+其中 `[local]` 节含 `db_path`（COD 索引）、`polydb_path`（polyDB 目录）、`xindb_path`（xinDB 文件）、`cod_root`（数据根目录）；
 注册状态 `%APPDATA%\PolyXRD\GetCIF\registration.json`；
 CIF 下载默认目录 `%APPDATA%\PolyXRD\GetCIF\downloads`。
 
 ## 数据源致谢
 
 COD · AMCSD/RRUFF · Materials Project · Atomly 的公开数据服务。
+本地库格式兼容 PolyXRD（polyDB v1）与 XinMatch（xinDB v3）的外挂数据库。

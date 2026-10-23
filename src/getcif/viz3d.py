@@ -11,8 +11,10 @@ from getcif.cifparse import CifData
 from getcif.viz_elements import element_color, element_radius
 
 _MAX_SITES = 800          # 绘制上限：超出后抽样
-_CELL_COLOR = "#7DD2FB"   # PolyXRD 主题青色（与 splash 呼应）
-_BG_COLOR = "#0B1524"
+_CELL_COLOR = "#22A7DD"   # PolyXRD 主题青色（与 splash 呼应）
+_BG_COLOR = "#FFFFFF"     # 明亮模式：3D 视口跟随浅色界面
+_TEXT_COLOR = "#333F4E"
+_TEXT_DIM = "#5B6B7C"
 
 
 class Viewer3D:
@@ -71,7 +73,7 @@ class Viewer3D:
         self.axes.set_facecolor(_BG_COLOR)
         if message:
             self.axes.text2D(0.5, 0.5, message, transform=self.axes.transAxes,
-                             ha="center", va="center", color="#8FB6D9", fontsize=9)
+                             ha="center", va="center", color=_TEXT_DIM, fontsize=9)
         self._refresh()
 
     def _refresh(self) -> None:
@@ -148,7 +150,7 @@ class Viewer3D:
             element = rendered[index][3]
             axes.scatter([x], [y], [z],
                          s=max(12.0, float(radii[index]) ** 2 * 220),
-                         c=element_color(element), edgecolors="#0B1524",
+                         c=element_color(element), edgecolors="#FFFFFF",
                          linewidths=0.4, depthshade=True, zorder=3)
 
         # ---- 视角 / 标注 ----
@@ -168,11 +170,11 @@ class Viewer3D:
 
         shown_elements = sorted({p[3].capitalize() for p in rendered})
         title_bits = [bit for bit in (label, f"atoms={len(rendered)}") if bit]
-        axes.set_title(" · ".join(title_bits), color="#CFE7F7", fontsize=9, pad=2)
+        axes.set_title(" · ".join(title_bits), color=_TEXT_COLOR, fontsize=9, pad=2)
         if shown_elements:
             legend_labels = [f"{e}" for e in shown_elements][:10]
             axes.text2D(0.02, 0.02, "  ".join(legend_labels),
-                        transform=axes.transAxes, color="#8FB6D9", fontsize=7)
+                        transform=axes.transAxes, color=_TEXT_DIM, fontsize=7)
         self._refresh()
 
 

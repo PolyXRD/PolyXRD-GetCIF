@@ -24,6 +24,8 @@ _SOURCE_LABELS = {
     "amcsd": "AMCSD（联网）",
     "mp": "MP（联网）",
     "atomly": "Atomly（联网）",
+    "polydb": "polyDB 外挂库",
+    "xindb": "xinDB 库",
 }
 
 
@@ -44,7 +46,7 @@ class ResultTable(QWidget):
 
         header_row = QHBoxLayout()
         self.title_label = QLabel(tr("检索结果"))
-        self.title_label.setStyleSheet("font-weight:600; color:#4FC3F7;")
+        self.title_label.setStyleSheet("font-weight:600; color:#1783B0;")
         self.count_label = QLabel("")
         self.count_label.setObjectName("dimLabel")
         header_row.addWidget(self.title_label)

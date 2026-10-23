@@ -19,7 +19,7 @@ echo.
 
 cd /d "%~dp0"
 
-set APPVER=1.2.0
+set APPVER=1.3.0
 
 REM -- Python: prefer PolyXRD venv (PySide6/matplotlib/PyInstaller ready)
 set PYTHON=..\PolyXRD\venv\Scripts\python.exe

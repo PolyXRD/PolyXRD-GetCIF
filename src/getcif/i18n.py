@@ -23,6 +23,7 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
     "语言 (&L)": {"en": "&Language", "ja": "言語(&L)"},
     "退出 (&Q)": {"en": "&Quit", "ja": "終了(&Q)"},
     "帮助 (&H)": {"en": "&Help", "ja": "ヘルプ(&H)"},
+    "版权与许可 (&L)": {"en": "Copyright && License (&L)", "ja": "著作権とライセンス(&L)"},
     "关于 {} (&A)": {"en": "About {} (&A)", "ja": "{} について(&A)"},
     "界面语言已切换：{}": {"en": "UI language switched: {}", "ja": "表示言語を切り替えました: {}"},
     # ---- 检索条件面板 ----
@@ -85,6 +86,8 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
     "AMCSD（联网）": {"en": "AMCSD (online)", "ja": "AMCSD（オンライン）"},
     "MP（联网）": {"en": "MP (online)", "ja": "MP（オンライン）"},
     "Atomly（联网）": {"en": "Atomly (online)", "ja": "Atomly（オンライン）"},
+    "polyDB 外挂库": {"en": "polyDB library", "ja": "polyDB ライブラリ"},
+    "xinDB 库": {"en": "xinDB library", "ja": "xinDB ライブラリ"},
     # ---- 预览对话框 ----
     "CIF 预览": {"en": "CIF Preview", "ja": "CIF プレビュー"},
     "结构信息": {"en": "Structure Info", "ja": "構造情報"},
@@ -112,7 +115,18 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
     # ---- 设置对话框 ----
     "数据源设置": {"en": "Data Source Settings", "ja": "データソース設定"},
     "启用（联网检索 CIF，默认开启）": {"en": "Enable (online CIF search; on by default)", "ja": "有効化（オンライン CIF 検索、デフォルト ON）"},
-    "启用（配置检索索引后生效）": {"en": "Enable (active after index configured)", "ja": "有効化（インデックス設定後に有効）"},
+    "COD 本地索引（cod_index.sqlite，兼容 PolyXRD 全库索引）": {
+        "en": "COD local index (cod_index.sqlite; PolyXRD full-index compatible)",
+        "ja": "COD ローカルインデックス（cod_index.sqlite、PolyXRD 互換）",
+    },
+    "polyDB 外挂库（PolyXRD v4 目录容器：meta.json + index.sqlite）": {
+        "en": "polyDB library (PolyXRD v4 directory container: meta.json + index.sqlite)",
+        "ja": "polyDB ライブラリ（PolyXRD v4 ディレクトリコンテナ: meta.json + index.sqlite）",
+    },
+    "xinDB 库（XinMatch v3 单文件；仅元数据检索，不含 CIF 原文）": {
+        "en": "xinDB library (XinMatch v3 single file; metadata search only, no CIF text)",
+        "ja": "xinDB ライブラリ（XinMatch v3 単一ファイル; メタデータ検索のみ、CIF 原文なし）",
+    },
     "启用（无需配置，配置完成后勾选开启）": {"en": "Enable (no credentials needed; check to turn on)", "ja": "有効化（認証情報不要、チェックで ON）"},
     "API Key（materialsproject.org 免费注册获取；配置后可开启）": {
         "en": "API Key (free at materialsproject.org; enable after entering)",
@@ -126,23 +140,37 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "en": "Search index (cod_index.sqlite; PolyXRD full-index compatible)",
         "ja": "検索インデックス（cod_index.sqlite、PolyXRD 互換）",
     },
-    "COD 数据根目录（可选，用于解析相对路径的 CIF 文件）": {
-        "en": "COD data root (optional; resolves relative CIF paths)",
-        "ja": "COD データルート（任意、相対パス CIF の解決用）",
+    "数据根目录（可选，解析本地索引与 polyDB 的相对 CIF 路径）": {
+        "en": "Data root (optional; resolves relative CIF paths of the local index and polyDB)",
+        "ja": "データルート（任意、ローカルインデックスと polyDB の相対 CIF パス解決用）",
+    },
+    "polyDB 目录（含 meta.json / index.sqlite 的外挂库目录）": {
+        "en": "polyDB directory (library container with meta.json / index.sqlite)",
+        "ja": "polyDB ディレクトリ（meta.json / index.sqlite を含むライブラリコンテナ）",
+    },
+    "xinDB 库文件（.xinDB；仅元数据检索，不含 CIF 原文）": {
+        "en": "xinDB library file (.xinDB; metadata search only, no CIF text)",
+        "ja": "xinDB ライブラリファイル（.xinDB; メタデータ検索のみ、CIF 原文なし）",
     },
     "网络超时（秒）": {"en": "Network timeout (s)", "ja": "ネットワークタイムアウト（秒）"},
     "浏览…": {"en": "Browse…", "ja": "参照…"},
     "确定 (&O)": {"en": "&OK", "ja": "OK(&O)"},
     "取消 (&C)": {"en": "&Cancel", "ja": "キャンセル(&C)"},
-    "说明：COD 联网检索默认开启；AMCSD 无需凭证；MP 需要 API Key；Atomly 需要 Token。本地库需指向 SQLite 检索索引。": {
-        "en": "Note: COD online search is on by default; AMCSD needs no credentials; MP needs an API Key; Atomly needs a Token. The local library points to a SQLite search index.",
-        "ja": "メモ: COD オンライン検索はデフォルト ON。AMCSD は認証不要。MP は API Key、Atomly は Token が必要。ローカル庫は SQLite インデックスを指定。",
+    "说明：COD 联网检索默认开启；AMCSD 无需凭证；MP 需要 API Key；Atomly 需要 Token。本地库支持三种格式：COD 检索索引（cod_index.sqlite）、polyDB 外挂库目录（PolyXRD v4）、xinDB 库文件（XinMatch v3，仅元数据检索）。": {
+        "en": "Note: COD online search is on by default; AMCSD needs no credentials; MP needs an API Key; Atomly needs a Token. Local libraries support three formats: COD search index (cod_index.sqlite), polyDB directory (PolyXRD v4), and xinDB file (XinMatch v3, metadata search only).",
+        "ja": "メモ: COD オンライン検索はデフォルト ON。AMCSD は認証不要。MP は API Key、Atomly は Token が必要。ローカル庫は 3 形式対応: COD 検索インデックス（cod_index.sqlite）、polyDB ディレクトリ（PolyXRD v4）、xinDB ファイル（XinMatch v3、メタデータ検索のみ）。",
     },
     "设置已保存": {"en": "Settings saved", "ja": "設定を保存しました"},
     "选择检索索引文件": {"en": "Select search index file", "ja": "検索インデックスを選択"},
+    "选择 polyDB 目录": {"en": "Select polyDB directory", "ja": "polyDB ディレクトリを選択"},
+    "选择 xinDB 库文件": {"en": "Select xinDB library file", "ja": "xinDB ライブラリファイルを選択"},
     "SQLite 数据库 (*.sqlite *.db);;所有文件 (*)": {
         "en": "SQLite Database (*.sqlite *.db);;All Files (*)",
         "ja": "SQLite データベース (*.sqlite *.db);;すべてのファイル (*)",
+    },
+    "xinDB 数据库 (*.xinDB);;SQLite 数据库 (*.sqlite *.db);;所有文件 (*)": {
+        "en": "xinDB Database (*.xinDB);;SQLite Database (*.sqlite *.db);;All Files (*)",
+        "ja": "xinDB データベース (*.xinDB);;SQLite データベース (*.sqlite *.db);;すべてのファイル (*)",
     },
     "选择目录": {"en": "Select Folder", "ja": "フォルダーを選択"},
     # ---- 关于 ----

@@ -31,24 +31,24 @@ class AboutDialog(QDialog):
             root.addWidget(logo)
 
         title = QLabel(f"{__app_name__} {get_edition()} v{__version__}")
-        title.setStyleSheet("font-size:16px; font-weight:700; color:#4FC3F7;")
+        title.setStyleSheet("font-size:16px; font-weight:700; color:#1783B0;")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         root.addWidget(title)
 
         subtitle = QLabel(tr("CIF 检索与获取小工具"))
         subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        subtitle.setStyleSheet("color:#D7E7F5;")
+        subtitle.setStyleSheet("color:#333F4E;")
         root.addWidget(subtitle)
 
         sources = QLabel(tr("数据源：COD · AMCSD · Materials Project · Atomly · 本地库"))
         sources.setAlignment(Qt.AlignmentFlag.AlignCenter)
         sources.setWordWrap(True)
-        sources.setStyleSheet("color:#8FB6D9; font-size:11px;")
+        sources.setStyleSheet("color:#5B6B7C; font-size:11px;")
         root.addWidget(sources)
 
         family = QLabel("PolyXRD Family · PolyXRD Team © 2026")
         family.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        family.setStyleSheet("color:#64748B; font-size:11px;")
+        family.setStyleSheet("color:#8A97A5; font-size:11px;")
         root.addWidget(family)
 
         close_button = QPushButton(tr("关闭"))
