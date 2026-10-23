@@ -2,7 +2,7 @@
 """内部评估版（POLYXRD_GETCIF_INTERNAL=1）主窗口行为验证：
 
 * 注册机制整体停用（无 RegistrationManager、无「输入注册码」菜单项）；
-* 状态栏最右侧右对齐显示「内部评估版本」；
+* 状态栏**居中**显示「内部评估版本」（加粗红字，字号不变）；
 * 语言切换后该文案同步三语。
 
 用法：python tests/_internal_edition_check.py  （自身设 offscreen 环境变量）
@@ -44,18 +44,30 @@ for action in window.menuBar().actions():
 assert not any("注册" in t for t in menu_texts), menu_texts
 print("[PASS] 帮助菜单无「输入注册码」入口")
 
-# 状态栏：右侧右对齐「内部评估版本」，且是最右常驻控件
+# 状态栏：**居中**显示「内部评估版本」（加粗红字，字号不变）
 bar = window.statusBar()
+for _ in range(10):
+    app.processEvents()
 label = window._internal_label
 assert label is not None
 assert label.text() == "内部评估版本", label.text()
-assert label.alignment() & Qt.AlignmentFlag.AlignRight
-print("[PASS] 状态栏显示「内部评估版本」（右对齐）")
+assert label.alignment() & Qt.AlignmentFlag.AlignCenter
+print("[PASS] 状态栏显示「内部评估版本」（居中）")
 
-label_right = label.mapTo(bar, label.rect().topRight()).x()
-GRIP_MARGIN = 40
-assert label_right >= bar.width() - GRIP_MARGIN, (label_right, bar.width())
-print(f"[PASS] 标签位于状态栏最右侧（右端 {label_right}，状态栏宽 {bar.width()}）")
+# 样式：红字 + 加粗（字号沿用全局 QSS，不改）
+from getcif.ui.theme import DANGER  # noqa: E402
+
+sheet = label.styleSheet()
+assert DANGER in sheet, sheet
+assert "font-weight: bold" in sheet, sheet
+print(f"[PASS] 标签样式：红色 {DANGER} + 加粗")
+
+# 几何：标签横向占满状态栏，文本居中（标签中心 ≈ 状态栏中心）
+left = label.mapTo(bar, label.rect().topLeft()).x()
+center = left + label.width() / 2.0
+bar_center = bar.width() / 2.0
+assert abs(center - bar_center) <= 24, (center, bar_center, left, label.width())
+print(f"[PASS] 标签横向居中（中心 {center:.0f}，状态栏中心 {bar_center:.0f}）")
 
 # 语言切换 → 三语文案同步
 window._switch_language("en")

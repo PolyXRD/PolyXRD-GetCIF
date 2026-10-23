@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
     QMainWindow,
     QMessageBox,
     QProgressBar,
+    QSizePolicy,
     QSplitter,
     QWidget,
 )
@@ -26,7 +27,7 @@ from getcif.ui.preview_dialog import PreviewDialog
 from getcif.ui.result_table import ResultTable
 from getcif.ui.search_panel import SearchPanel
 from getcif.ui.settings_dialog import SettingsDialog
-from getcif.ui.theme import build_qss
+from getcif.ui.theme import DANGER, build_qss
 from getcif.utils import registration
 from getcif.utils.build_variant import is_internal_edition
 from getcif.utils.resources import get_app_icon_path
@@ -138,16 +139,21 @@ class MainWindow(QMainWindow):
         self.progress.setVisible(False)
         status_bar.addPermanentWidget(self.progress)
         # 最下面一排最右侧（右对齐）：注册的单位部门名称 / 未注册；
-        # 内部评估版固定显示「内部评估版本」
+        # 内部评估版：状态栏**居中**显示「内部评估版本」（加粗红字，字号不变）
         self._internal_label: Optional[QLabel] = None
         if self._reg is not None:
             self._reg.attach_status_label(status_bar, self)
         else:
             self._internal_label = QLabel(tr("内部评估版本"))
             self._internal_label.setAlignment(
-                Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
+                Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter
             )
-            status_bar.addPermanentWidget(self._internal_label, 1)
+            # 仅加粗 + 红字，字号沿用全局 QSS（不调字号）
+            self._internal_label.setStyleSheet(f"color: {DANGER}; font-weight: bold;")
+            self._internal_label.setSizePolicy(
+                QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred
+            )
+            status_bar.addWidget(self._internal_label, 1)
         self.set_status(tr("就绪 —— 输入检索条件后点击「检索」"))
 
     # ------------------------------------------------------------------
