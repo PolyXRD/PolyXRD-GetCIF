@@ -89,6 +89,20 @@ ANALYSIS_EXCLUDES: list[str] = [
     "PySide6.QtQuickWidgets",
     "PySide6.Qt3DCore",
     "PySide6.Qt3DRender",
+    # 排除 numpy / matplotlib 的测试子模块（不参与运行，且大幅拖慢 Analysis 并增大内存峰值）
+    "numpy.tests",
+    "numpy.f2py.tests",
+    "numpy.lib.tests",
+    "numpy.linalg.tests",
+    "numpy.ma.tests",
+    "numpy.fft.tests",
+    "numpy.matrixlib.tests",
+    "numpy.core.tests",
+    "numpy.random.tests",
+    "numpy.distutils.tests",
+    "numpy.conftest",
+    "numpy._pyinstaller.tests",
+    "matplotlib.tests",
 ]
 
 

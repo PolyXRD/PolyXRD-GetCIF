@@ -16,6 +16,7 @@ build/
 dist/
 _bdist/
 _bwork/
+.build_tmp/
 installer_output/
 
 # ---- 凭证 / 本地配置（禁止提交）----
