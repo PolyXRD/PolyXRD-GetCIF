@@ -4,10 +4,10 @@ REM -- UTF-8 global: keep console output sane (messages below are ASCII-only;
 REM -- full-width chars in batch lines can desync cmd's parser under cp65001)
 set PYTHONUTF8=1
 set PYTHONIOENCODING=utf-8
-title PolyXRD GetCIF v1.3.1 multi-edition EXE + Setup builder
+title PolyXRD GetCIF v1.4.0 multi-edition EXE + Setup builder
 
 echo ==========================================
-echo   PolyXRD GetCIF v1.3.1 build all
+echo   PolyXRD GetCIF v1.4.0 build all
 echo   [1] Standard  PolyXRD-GetCIF.exe         (onefile, no 3D, trimmed Qt)
 echo   [2] Plus      PolyXRD-GetCIF-Plus.exe    (onefile, 3D preview, full Qt)
 echo   [3] Internal  PolyXRD-GetCIF-Internal.exe (onefile, Plus-based, NO registration)
@@ -19,12 +19,17 @@ echo.
 
 cd /d "%~dp0"
 
-set APPVER=1.3.1
+set APPVER=1.4.0
 
 REM -- Python: prefer PolyXRD venv (PySide6/matplotlib/PyInstaller ready)
+REM    GETCIF_PYTHON overrides the interpreter; GETCIF_SITE_PACKAGES adds an
+REM    extra site-packages dir to PYTHONPATH (for a system python whose venv
+REM    python.exe is unavailable / blocked by endpoint protection).
 set PYTHON=..\PolyXRD\venv\Scripts\python.exe
 if not exist "%PYTHON%" set PYTHON=venv\Scripts\python.exe
 if not exist "%PYTHON%" set PYTHON=python
+if defined GETCIF_PYTHON set PYTHON=%GETCIF_PYTHON%
+if defined GETCIF_SITE_PACKAGES set "GETCIF_PP=src;%GETCIF_SITE_PACKAGES%"
 
 echo [info] Python: %PYTHON%
 "%PYTHON%" -c "import sys;print('       version:',sys.version.split()[0])"
@@ -41,7 +46,7 @@ set ISCC=
 REM -- Step 1: pre-build checks (offscreen smoke + functional checks)
 echo [step 1/6] smoke + functional checks...
 set QT_QPA_PLATFORM=offscreen
-set PYTHONPATH=src
+if defined GETCIF_PP (set "PYTHONPATH=%GETCIF_PP%") else (set PYTHONPATH=src)
 "%PYTHON%" -m getcif.gui --smoke --no-splash
 if errorlevel 1 (
     echo [error] smoke check failed, abort.
@@ -53,6 +58,7 @@ if errorlevel 1 (
     exit /b 1
 )
 set PYTHONPATH=
+if defined GETCIF_PP set "PYTHONPATH=%GETCIF_PP%"
 set QT_QPA_PLATFORM=
 echo.
 

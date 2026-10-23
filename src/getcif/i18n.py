@@ -184,6 +184,81 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "关闭": {"en": "Close", "ja": "閉じる"},
     "确定": {"en": "OK", "ja": "OK"},
+    # ---- 本地库多库挂载（v1.4.0）----
+    "添加…": {"en": "Add…", "ja": "追加…"},
+    "移除": {"en": "Remove", "ja": "削除"},
+    "重新探测": {"en": "Re-scan", "ja": "再スキャン"},
+    "可挂多个库；每行一个，选中后点「移除」卸下": {
+        "en": "Multiple libraries allowed; one per row, select and Remove to unmount",
+        "ja": "複数ライブラリ可。1 行 1 件、選択して「削除」で取り外し",
+    },
+    "未挂载": {"en": "None mounted", "ja": "未マウント"},
+    "已挂载 {} 个": {"en": "{} mounted", "ja": "{} 件マウント中"},
+    "已挂载 {} 个（{} 个不可用）": {
+        "en": "{} mounted ({} unavailable)",
+        "ja": "{} 件マウント中（{} 件使用不可）",
+    },
+    "不可用": {"en": "Unavailable", "ja": "使用不可"},
+    "添加 .polyDB 目录；也可直接选上层目录，自动展开其中所有 .polyDB。CIF 原文按各库 meta.json 的相对路径解析。": {
+        "en": "Add a .polyDB directory, or pick the parent folder to expand every .polyDB inside. CIF files are resolved from each library's own meta.json.",
+        "ja": ".polyDB ディレクトリを追加。親フォルダーを選ぶと中の .polyDB を一括展開。CIF は各ライブラリの meta.json に従って解決。",
+    },
+    "添加 .xinDB 文件；也可选上层目录，自动展开其中所有 .xinDB。": {
+        "en": "Add a .xinDB file, or pick the parent folder to expand every .xinDB inside.",
+        "ja": ".xinDB ファイルを追加。親フォルダーを選ぶと中の .xinDB を一括展開。",
+    },
+    "选择 polyDB 目录（可多选其上层目录自动展开）": {
+        "en": "Select polyDB directory (parent folder expands automatically)",
+        "ja": "polyDB ディレクトリを選択（親フォルダーなら自動展開）",
+    },
+    "xinDB 数据库 (*.xinDB *.db);;所有文件 (*)": {
+        "en": "xinDB Database (*.xinDB *.db);;All Files (*)",
+        "ja": "xinDB データベース (*.xinDB *.db);;すべてのファイル (*)",
+    },
+    "所有文件 (*)": {"en": "All Files (*)", "ja": "すべてのファイル (*)"},
+    "说明：COD 联网检索默认开启；AMCSD 无需凭证；MP 需要 API Key；Atomly 需要 Token。本地库支持三种格式：COD 检索索引（cod_index.sqlite）、polyDB 外挂库目录（PolyXRD v4，可挂多个）、xinDB 库文件（XinMatch v3，仅元数据检索，可挂多个）。": {
+        "en": "Note: COD online search is on by default; AMCSD needs no credentials; MP needs an API Key; Atomly needs a Token. Local libraries support three formats: COD search index (cod_index.sqlite), polyDB directory (PolyXRD v4, multiple mounts), and xinDB file (XinMatch v3, metadata search only, multiple mounts).",
+        "ja": "メモ: COD オンライン検索はデフォルト ON。AMCSD は認証不要。MP は API Key、Atomly は Token が必要。ローカル庫は 3 形式対応: COD 検索インデックス（cod_index.sqlite）、polyDB ディレクトリ（PolyXRD v4、複数マウント可）、xinDB ファイル（XinMatch v3、メタデータ検索のみ、複数マウント可）。",
+    },
+    # ---- 库状态原因（LibraryListGroup）----
+    "路径不存在": {"en": "Path does not exist", "ja": "パスが存在しません"},
+    "不是目录": {"en": "Not a directory", "ja": "ディレクトリではありません"},
+    "不是文件": {"en": "Not a file", "ja": "ファイルではありません"},
+    "不是 SQLite 数据库": {"en": "Not a SQLite database", "ja": "SQLite データベースではありません"},
+    "meta.json 无法解析": {"en": "meta.json cannot be parsed", "ja": "meta.json を解析できません"},
+    "缺少 meta.json（不是 polyDB 目录）": {
+        "en": "meta.json missing (not a polyDB directory)",
+        "ja": "meta.json がありません（polyDB ディレクトリではない）",
+    },
+    "缺少 index.sqlite": {"en": "index.sqlite missing", "ja": "index.sqlite がありません"},
+    "缺少 entries 表": {"en": "entries table missing", "ja": "entries テーブルがありません"},
+    "缺少 meta 表": {"en": "meta table missing", "ja": "meta テーブルがありません"},
+    "缺少 peak_chunks 表（不是 xinDB v3）": {
+        "en": "peak_chunks table missing (not xinDB v3)",
+        "ja": "peak_chunks テーブルがありません（xinDB v3 ではない）",
+    },
+    "entries 表缺少 cif_rel 列（旧版 polyDB）": {
+        "en": "entries has no cif_rel column (legacy polyDB)",
+        "ja": "entries に cif_rel 列がありません（旧版 polyDB）",
+    },
+    "schema 版本不受支持：{}": {
+        "en": "Unsupported schema version: {}",
+        "ja": "未対応のスキーマバージョン: {}",
+    },
+    "meta.json 的 format 不是 polyDB（{}）": {
+        "en": "meta.json format is not polyDB ({})",
+        "ja": "meta.json の format が polyDB ではありません（{}）",
+    },
+    "旧版 XinMatch 库（entries/peaks），请用 XinMatch ≥ 2.0 重建为 .xinDB v3": {
+        "en": "Legacy XinMatch library (entries/peaks); rebuild as .xinDB v3 with XinMatch ≥ 2.0",
+        "ja": "旧版 XinMatch ライブラリ（entries/peaks）。XinMatch 2.0 以降で .xinDB v3 に再構築してください",
+    },
+    "段文件大小与 meta.json 不符（拷贝可能中断）：{}": {
+        "en": "Section size differs from meta.json (copy may be incomplete): {}",
+        "ja": "セクションサイズが meta.json と一致しません（コピー中断の可能性）: {}",
+    },
+    "缺少文件：{}": {"en": "Missing file: {}", "ja": "ファイルがありません: {}"},
+    "打开失败：{}": {"en": "Open failed: {}", "ja": "オープン失敗: {}"},
 }
 
 

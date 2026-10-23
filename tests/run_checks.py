@@ -425,6 +425,123 @@ def test_cod_online() -> None:
     check("COD CIF 解析渲染数据", bool(cif.sites) and cif.cell.get("a", 0) > 0)
 
 
+def _make_multi_polydb() -> tuple[Path, Path, Path]:
+    """两份 polyDB（不同 eid）+ 一个装着它们的父目录，用于多库挂载自检。"""
+    root = Path(tempfile.mkdtemp())
+    for name, eid, formula in (("COD-Inorg-X.polyDB", 2000001, "O2 Si"),
+                               ("COD-Full-X.polyDB", 2000002, "O2 Ti")):
+        db_dir = root / name
+        db_dir.mkdir()
+        (db_dir / "meta.json").write_text(json.dumps({
+            "format": "polyDB", "schema_version": 1,
+            "variant": name.replace(".polyDB", "").lower(),
+            "counts": {"phases": 1, "k": 4, "peaks": 4, "sites": 2},
+        }), encoding="utf-8")
+        conn = sqlite3.connect(db_dir / "index.sqlite")
+        conn.execute("""CREATE TABLE entries (
+            eid INTEGER PRIMARY KEY, formula TEXT, formula_red TEXT, mineral TEXT,
+            space_group TEXT, sg_number INTEGER, elements TEXT,
+            a REAL, b REAL, c REAL, alpha REAL, beta REAL, gamma REAL,
+            volume REAL, density REAL, z INTEGER, n_peaks INTEGER,
+            tier INTEGER DEFAULT 0, dup_group INTEGER DEFAULT 0,
+            cif_rel TEXT, src_mtime INTEGER, row_idx INTEGER)""")
+        conn.execute(
+            "INSERT INTO entries VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            (eid, formula, formula, "Test", "P 1", 1, "O,Si",
+             4.9, 4.9, 5.4, 90, 90, 90, 110.0, 2.6, 2, 4, 0, 0,
+             f"cifs/{eid}.cif", 0, 0))
+        conn.commit()
+        conn.close()
+    return root / "COD-Inorg-X.polyDB", root / "COD-Full-X.polyDB", root
+
+
+def test_polydb_multi() -> None:
+    """多库挂载：列表里的每个库都要被检索到；父目录要能自动展开。"""
+    from getcif.adapters.polydb import PolyDbAdapter
+    from getcif.core import config as cfg
+    from getcif.core.schema import SearchQuery
+
+    lib_a, lib_b, parent = _make_multi_polydb()
+    cfg.set_source_enabled("polydb", True)
+    # 1) 两条路径（各是一份库）
+    cfg.save_polydb_paths([str(lib_a), str(lib_b)])
+    check("多库：两条路径都生效", cfg.polydb_paths() == [str(lib_a), str(lib_b)],
+          str(cfg.polydb_paths()))
+    adapter = PolyDbAdapter(timeout=10)
+    libs = adapter.libraries()
+    check("多库：探测到 2 个库", len(libs) == 2 and all(l.ok for l in libs),
+          str([(l.path.name, l.reason) for l in libs]))
+    cands = adapter.search(SearchQuery(elements="O", limit=20))
+    ids = {c.source_id for c in cands}
+    check("多库：两库结果合并", {"2000001", "2000002"} <= ids, str(sorted(ids)))
+    check("多库：候选标注所属库",
+          all(c.extra.get("_lib_label") for c in cands), str(cands[0].extra))
+
+    # 2) 只给父目录 → 自动展开成 2 个 .polyDB
+    cfg.save_polydb_paths([str(parent)])
+    adapter2 = PolyDbAdapter(timeout=10)
+    check("多库：父目录自动展开", len(adapter2.usable_libraries()) == 2,
+          str([l.path.name for l in adapter2.libraries()]))
+
+    # 3) 老配置（单路径键）仍然可用
+    cfg.save("local", {"polydb_paths": "", "polydb_path": str(lib_a)})
+    check("多库：兼容旧单路径配置", cfg.polydb_paths() == [str(lib_a)],
+          str(cfg.polydb_paths()))
+    check("多库：旧配置可检索", len(PolyDbAdapter(timeout=10).search(
+        SearchQuery(elements="O", limit=10))) == 1)
+
+
+def test_xindb_multi() -> None:
+    """多库挂载：目录里的多份 .xinDB 自动展开，逐个出结果。"""
+    from getcif.adapters.xindb import XinDbAdapter
+    from getcif.core import config as cfg
+    from getcif.core.schema import SearchQuery
+
+    def _make(dir_path: Path, name: str, entry_id: str, formula: str) -> Path:
+        db_path = dir_path / name
+        conn = sqlite3.connect(db_path)
+        conn.executescript("""
+            CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT);
+            CREATE TABLE entries (
+                entry_id TEXT PRIMARY KEY, formula TEXT, space_group TEXT,
+                crystal_system TEXT, mineral_name TEXT, elements TEXT, elem_mask INTEGER,
+                a REAL, b REAL, c REAL, alpha REAL, beta REAL, gamma REAL,
+                volume REAL, density REAL, year INTEGER, author TEXT, journal TEXT,
+                quality TEXT, n_peaks INTEGER, peak_off INTEGER, peak_n INTEGER,
+                tier INTEGER DEFAULT 1);
+            CREATE TABLE peak_chunks (
+                chunk_id INTEGER PRIMARY KEY, n INTEGER,
+                top_d BLOB, top_i BLOB, all_d BLOB, all_i BLOB);
+        """)
+        conn.execute("INSERT INTO meta VALUES ('schema_version','3')")
+        conn.execute("INSERT INTO meta VALUES ('entry_count','1')")
+        conn.execute("INSERT INTO meta VALUES ('library_kind',?)", (name.split("-")[0],))
+        conn.execute("INSERT INTO meta VALUES ('data_date','20261020')")
+        conn.execute(
+            "INSERT INTO entries VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            (entry_id, formula, "P 1", "triclinic", "Test", "O,Si", 0,
+             4.9, 4.9, 5.4, 90, 90, 90, 110.0, 2.6, 2001, "", "", "", 4, 0, 4, 1))
+        conn.execute("INSERT INTO peak_chunks VALUES (0,1,X'00',X'00',X'00',X'00')")
+        conn.commit()
+        conn.close()
+        return db_path
+
+    root = Path(tempfile.mkdtemp())
+    _make(root, "COD-Inorg-X.xinDB", "96-200-0001", "O2 Si")
+    _make(root, "TCOD-Inorg-X.xinDB", "96-110-0001", "O2 Ti")
+    cfg.set_source_enabled("xindb", True)
+    cfg.save_xindb_paths([str(root)])
+    adapter = XinDbAdapter(timeout=10)
+    libs = adapter.libraries()
+    check("xinDB 多库：目录自动展开", len(libs) == 2 and all(l.ok for l in libs),
+          str([(l.path.name, l.reason) for l in libs]))
+    check("xinDB 多库：读出库标识/日期",
+          all(l.library_kind and l.data_date for l in libs),
+          str([(l.library_kind, l.data_date) for l in libs]))
+    ids = {c.source_id for c in adapter.search(SearchQuery(elements="O", limit=20))}
+    check("xinDB 多库：两库结果合并", {"96-200-0001", "96-110-0001"} <= ids, str(sorted(ids)))
+
+
 def main() -> int:
     print("=" * 50)
     print("PolyXRD-GetCIF 发布前自检")
@@ -434,6 +551,8 @@ def main() -> int:
     test_cod_local()
     test_polydb()
     test_xindb()
+    test_polydb_multi()
+    test_xindb_multi()
     test_theme_and_help_menu()
     test_viewer()
     test_registration()

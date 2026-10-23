@@ -10,7 +10,7 @@
 |---|---|---|---|---|
 | **标准版**（单文件） | `PolyXRD-GetCIF.exe` | ~106 MB | ✅ | 检索 / 预览 / 下载全功能；**不含 3D 预览**（matplotlib/numpy 已裁剪 + Qt 未用模块精简） |
 | **Plus 版**（单文件） | `PolyXRD-GetCIF-Plus.exe` | ~269 MB | ✅ | 含**应用内 3D 结构展示**（对称操作展开渲染）+ 完整 Qt，为后续功能扩展预留 |
-| **内部评估版**（单文件） | `PolyXRD-GetCIF-Internal.exe` | ~269 MB | ❌ 停用 | 内部评估自用：Plus 基底（含 3D），无注册提示/注册码入口，状态栏右侧固定显示「内部评估版本」 |
+| **内部评估版**（单文件） | `PolyXRD-GetCIF-Internal.exe` | ~269 MB | ❌ 停用 | 内部评估自用：Plus 基底（含 3D），无注册提示/注册码入口，状态栏**水平居中**固定显示「内部评估版本」（加粗红字，字号不变） |
 | **安装包**（Setup） | `PolyXRD-GetCIF-Setup.exe` / `PolyXRD-GetCIF-Plus-Setup.exe` | ~100/270 MB | ✅ | 正常安装流程：可选安装位置、开始菜单/桌面快捷方式、带卸载；onedir 版启动免自解压；装后每次启动检查注册（同单文件版） |
 
 标准版 / Plus 版 / 安装包：未注册每次启动提示版权信息，注册后状态栏右侧显示单位部门名称；
@@ -24,8 +24,8 @@
   |---|---|---|
   | COD（联网） | Crystallography Open Database，无需凭证 | ✅ 开启 |
   | COD 本地库 | SQLite 检索索引（兼容 PolyXRD 全库 `cod_index.sqlite`） | 配置后开启 |
-  | polyDB 外挂库 | PolyXRD v4 目录容器（`meta.json` + `index.sqlite`）；CIF 按 `cif_rel` 相对数据根目录解析 | 配置后开启 |
-  | xinDB 库 | XinMatch v3 单文件（`.xinDB`）；仅元数据检索，不含 CIF 原文 | 配置后开启 |
+  | polyDB 外挂库 | PolyXRD v4 目录容器（`meta.json` + `index.sqlite`）；**可挂多份**（如 COD-Inorg + COD-Full）；CIF 按各库 `cif_rel` 相对数据根目录解析 | 配置后开启 |
+  | xinDB 库 | XinMatch v3 单文件（`.xinDB`）；**可挂多份**（如 COD / PCOD / TCOD）；仅元数据检索，不含 CIF 原文 | 配置后开启 |
   | AMCSD（联网） | rruff.geo.arizona.edu，无需凭证 | 手动开启 |
   | Materials Project | 需免费 API Key（materialsproject.org） | 配置后开启 |
   | Atomly | 需 Token（atomly.net 登录后 localStorage 取 `userToken`） | 配置后开启 |
@@ -85,9 +85,24 @@ build.bat
 ## 配置存储
 
 `%APPDATA%\PolyXRD\GetCIF\settings.toml`（数据源开关、凭证、索引路径、语言）；
-其中 `[local]` 节含 `db_path`（COD 索引）、`polydb_path`（polyDB 目录）、`xindb_path`（xinDB 文件）、`cod_root`（数据根目录）；
+其中 `[local]` 节含 `db_path`（COD 索引）、`cod_root`（数据根目录）、
+`polydb_paths` / `xindb_paths`（多库列表，**换行分隔**；`polydb_path` / `xindb_path`
+为兼容旧版保留，自动等于列表首项）；
 注册状态 `%APPDATA%\PolyXRD\GetCIF\registration.json`；
 CIF 下载默认目录 `%APPDATA%\PolyXRD\GetCIF\downloads`。
+
+## 本地库（v1.4.0 起）
+
+与 PolyXRD v4.0.0 / XinMatch v2.0.0 一致，采用**列表式多库挂载**：
+
+- 设置 → 数据源设置 → polyDB / xinDB 各一张列表，**一行一个库**，可增删、可看状态
+  （物相数 / 变体 / 快照日期 / 不可用原因，悬停看明细）；
+- 添加时可指向库本体，也可指向**装着若干库的父目录**（如 `PolyXRD-DataBase\polydb`、
+  `XinMatch-DataBase\data`），自动展开其中所有 `.polyDB` / `.xinDB`；
+- 检索时逐个库查询后合并，候选 `provenance` 标明来自哪个库；同 eid 跨库重复只保留一份；
+- polyDB 的 CIF 原文按**该候选所属库**的 `meta.json` 解析：候选根依次为
+  设置里的「数据根目录」→ 环境变量 `XRD_DATA_ROOT` → `meta.source.root` → 库目录，
+  每个根再覆盖 `COD` / `PCOD` / `TCOD` 与 `inorg_cif/<lib>` 子目录；
 
 ## 数据源致谢
 

@@ -17,6 +17,7 @@ from PySide6.QtWidgets import (
 )
 
 from getcif import __app_name__, __version__
+from getcif.adapters.locallib import all_libraries
 from getcif.core import config
 from getcif.core.schema import SearchQuery
 from getcif.i18n import SUPPORTED_LANGUAGES, init_language, set_language, tr
@@ -27,7 +28,7 @@ from getcif.ui.preview_dialog import PreviewDialog
 from getcif.ui.result_table import ResultTable
 from getcif.ui.search_panel import SearchPanel
 from getcif.ui.settings_dialog import SettingsDialog
-from getcif.ui.theme import DANGER, build_qss
+from getcif.ui.theme import EVAL_RED, build_qss
 from getcif.utils import registration
 from getcif.utils.build_variant import is_internal_edition
 from getcif.utils.resources import get_app_icon_path
@@ -138,8 +139,8 @@ class MainWindow(QMainWindow):
         self.progress.setRange(0, 0)  # busy
         self.progress.setVisible(False)
         status_bar.addPermanentWidget(self.progress)
-        # 最下面一排最右侧（右对齐）：注册的单位部门名称 / 未注册；
-        # 内部评估版：状态栏**居中**显示「内部评估版本」（加粗红字，字号不变）
+        # 状态栏最右侧（右对齐）：注册的单位部门名称 / 未注册（注册版）
+        # 内部评估版：状态栏**水平居中**显示「内部评估版本」（加粗红字，字号不变）
         self._internal_label: Optional[QLabel] = None
         if self._reg is not None:
             self._reg.attach_status_label(status_bar, self)
@@ -149,11 +150,21 @@ class MainWindow(QMainWindow):
                 Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter
             )
             # 仅加粗 + 红字，字号沿用全局 QSS（不调字号）
-            self._internal_label.setStyleSheet(f"color: {DANGER}; font-weight: bold;")
-            self._internal_label.setSizePolicy(
-                QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred
-            )
-            status_bar.addWidget(self._internal_label, 1)
+            self._internal_label.setStyleSheet(
+                f"color: {EVAL_RED}; font-weight: bold;")
+            # 必须走 addPermanentWidget：addWidget 的普通控件会被
+            # QStatusBar.showMessage() 临时隐藏，而本窗口每次检索都会
+            # showMessage —— 那会让这条提示实际上永远看不见。
+            # 两侧各放一根弹性占位，把它压到正中间。
+            left_spacer = QWidget()
+            right_spacer = QWidget()
+            left_spacer.setSizePolicy(QSizePolicy.Policy.Expanding,
+                                      QSizePolicy.Policy.Preferred)
+            right_spacer.setSizePolicy(QSizePolicy.Policy.Expanding,
+                                       QSizePolicy.Policy.Preferred)
+            status_bar.addPermanentWidget(left_spacer, 1)
+            status_bar.addPermanentWidget(self._internal_label)
+            status_bar.addPermanentWidget(right_spacer, 1)
         self.set_status(tr("就绪 —— 输入检索条件后点击「检索」"))
 
     # ------------------------------------------------------------------
@@ -239,8 +250,22 @@ class MainWindow(QMainWindow):
             self._flash_status(tr("设置已保存"))
 
     def _update_source_hint(self) -> None:
-        enabled = [tr(_SOURCE_LABELS[name]) for name in _SOURCE_LABELS
-                   if config.source_enabled(name)]
+        # 多库挂载：本地库提示里带上"挂了几份"，避免用户以为只挂了第一份
+        lib_counters = {
+            "polydb": (config.polydb_paths, "polydb"),
+            "xindb": (config.xindb_paths, "xindb"),
+        }
+        enabled: list[str] = []
+        for name in _SOURCE_LABELS:
+            if not config.source_enabled(name):
+                continue
+            label = tr(_SOURCE_LABELS[name])
+            if name in lib_counters:
+                getter, kind = lib_counters[name]
+                count = len(all_libraries(kind, getter()))
+                if count > 1:
+                    label += f" ×{count}"
+            enabled.append(label)
         if enabled:
             self.set_status(tr("已启用：{}").format(" · ".join(enabled)))
 

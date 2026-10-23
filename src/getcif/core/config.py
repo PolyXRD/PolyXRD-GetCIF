@@ -232,10 +232,83 @@ def cod_local_root() -> str:
 
 
 def polydb_path() -> str:
-    """polyDB 外挂库目录（PolyXRD v4 目录容器：meta.json + index.sqlite + 数组段）。"""
+    """polyDB 外挂库目录（PolyXRD v4 目录容器：meta.json + index.sqlite + 数组段）。
+
+    兼容 v1.4.0 之前的单库配置；多库场景请用 :func:`polydb_paths`。
+    """
     return str(get("local", "polydb_path", "") or "").strip()
 
 
 def xindb_path() -> str:
-    """xinDB v3 库文件（XinMatch 列存参考库，单文件 .xinDB）。"""
+    """xinDB v3 库文件（XinMatch 列存参考库，单文件 .xinDB）。
+
+    兼容 v1.4.0 之前的单库配置；多库场景请用 :func:`xindb_paths`。
+    """
     return str(get("local", "xindb_path", "") or "").strip()
+
+
+# ----------------------------------------------------------------------
+# 本地库列表（v1.4.0：列表式多库挂载）
+#
+# PolyXRD v4.0.0 / XinMatch v2.0.0 都把外挂库改成"想挂几个挂几个"，本工具
+# 跟随同一模型。持久化用 ``<kind>_paths``（**换行分隔**的字符串）：
+# 自带 TOML 只支持 [section] + 标量，而 ``_escape``/``loads`` 已经处理 ``\n``
+# 转义，所以无需为列表改造读写器，也不会引入 tomllib 依赖（打包体积不变）。
+#
+# 老配置里的 ``polydb_path`` / ``xindb_path`` 仍然有效：读取时自动并入列表
+# （排在最前），写入时同步成列表首项 —— 升级后用户的库不会"丢"。
+# ----------------------------------------------------------------------
+_SUPPORTED_LIB_KINDS = ("polydb", "xindb")
+
+
+def _split_lines(text: str) -> list[str]:
+    return [line.strip() for line in str(text or "").replace("\r", "\n").split("\n")
+            if line.strip()]
+
+
+def lib_paths(kind: str) -> list[str]:
+    """读取某一类本地库的全部路径（去重、保序；老单路径自动并入）。"""
+    if kind not in _SUPPORTED_LIB_KINDS:
+        return []
+    items = _split_lines(str(get("local", f"{kind}_paths", "") or ""))
+    legacy = str(get("local", f"{kind}_path", "") or "").strip()
+    if legacy and legacy not in items:
+        items.insert(0, legacy)
+    seen: set[str] = set()
+    out: list[str] = []
+    for item in items:
+        key = item.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(item)
+    return out
+
+
+def save_lib_paths(kind: str, paths: list[str]) -> None:
+    """写入某一类本地库的路径列表（同时同步老的单路径键为列表首项）。"""
+    if kind not in _SUPPORTED_LIB_KINDS:
+        return
+    items = [str(p).strip() for p in (paths or []) if str(p).strip()]
+    save("local", {
+        f"{kind}_paths": "\n".join(items),
+        f"{kind}_path": items[0] if items else "",
+    })
+
+
+def polydb_paths() -> list[str]:
+    """polyDB 外挂库目录列表（每项可以是库本体，也可以是装着若干 .polyDB 的父目录）。"""
+    return lib_paths("polydb")
+
+
+def xindb_paths() -> list[str]:
+    """xinDB 库文件列表（每项可以是 .xinDB 本体，也可以是装着若干 .xinDB 的目录）。"""
+    return lib_paths("xindb")
+
+
+def save_polydb_paths(paths: list[str]) -> None:
+    save_lib_paths("polydb", paths)
+
+
+def save_xindb_paths(paths: list[str]) -> None:
+    save_lib_paths("xindb", paths)

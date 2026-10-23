@@ -55,12 +55,21 @@ assert label.alignment() & Qt.AlignmentFlag.AlignCenter
 print("[PASS] 状态栏显示「内部评估版本」（居中）")
 
 # 样式：红字 + 加粗（字号沿用全局 QSS，不改）
-from getcif.ui.theme import DANGER  # noqa: E402
+from getcif.ui.theme import EVAL_RED  # noqa: E402
 
 sheet = label.styleSheet()
-assert DANGER in sheet, sheet
+assert EVAL_RED.lower() in sheet.lower(), sheet
 assert "font-weight: bold" in sheet, sheet
-print(f"[PASS] 标签样式：红色 {DANGER} + 加粗")
+assert "font-size" not in sheet, sheet      # 字号不动
+print(f"[PASS] 标签样式：红色 {EVAL_RED} + 加粗（字号未调整）")
+
+# 关键回归：QStatusBar.showMessage() 会临时隐藏 addWidget 的普通控件，
+# 因此这条提示必须是**永久控件**才看得见 —— 本窗口每次检索都会 set_status()。
+window.set_status("就绪 —— 输入检索条件后点击「检索」")
+for _ in range(10):
+    app.processEvents()
+assert label.isVisible(), "showMessage 之后提示被隐藏了（应改用 addPermanentWidget）"
+print("[PASS] showMessage 之后提示仍可见")
 
 # 几何：标签横向占满状态栏，文本居中（标签中心 ≈ 状态栏中心）
 left = label.mapTo(bar, label.rect().topLeft()).x()
