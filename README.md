@@ -1,110 +1,110 @@
 # PolyXRD GetCIF
 
-**CIF 检索与获取小工具** —— PolyXRD 家族成员。单文件 exe，双击即用。
+**A small CIF search and retrieval tool** — a member of the PolyXRD family. Single-file exe, double-click to run.
 
 ![logo](resources/logo-horizontal.png)
 
-## 版本与发布形态
+## Versions and release forms
 
-| 形态 | 文件 | 体积 | 注册机制 | 适用 |
+| Form | File | Size | Registration mechanism | Use case |
 |---|---|---|---|---|
-| **标准版**（单文件） | `PolyXRD-GetCIF.exe` | ~106 MB | ✅ | 检索 / 预览 / 下载全功能；**不含 3D 预览**（matplotlib/numpy 已裁剪 + Qt 未用模块精简） |
-| **Plus 版**（单文件） | `PolyXRD-GetCIF-Plus.exe` | ~269 MB | ✅ | 含**应用内 3D 结构展示**（对称操作展开渲染）+ 完整 Qt，为后续功能扩展预留 |
-| **内部评估版**（单文件） | `PolyXRD-GetCIF-Internal.exe` | ~269 MB | ❌ 停用 | 内部评估自用：Plus 基底（含 3D），无注册提示/注册码入口，状态栏**水平居中**固定显示「内部评估版本」（加粗红字，字号不变） |
-| **安装包**（Setup） | `PolyXRD-GetCIF-Setup.exe` / `PolyXRD-GetCIF-Plus-Setup.exe` | ~100/270 MB | ✅ | 正常安装流程：可选安装位置、开始菜单/桌面快捷方式、带卸载；onedir 版启动免自解压；装后每次启动检查注册（同单文件版） |
+| **Standard edition** (single file) | `PolyXRD-GetCIF.exe` | ~106 MB | ✅ | Full search / preview / download; **no 3D preview** (matplotlib/numpy trimmed + unused Qt modules slimmed) |
+| **Plus edition** (single file) | `PolyXRD-GetCIF-Plus.exe` | ~269 MB | ✅ | Includes **in-app 3D structure display** (symmetry-operation expanded rendering) + full Qt, reserved for future feature expansion |
+| **Internal evaluation build** (single file) | `PolyXRD-GetCIF-Internal.exe` | ~269 MB | ❌ Disabled | For internal evaluation self-use: Plus base (with 3D), no registration prompt / registration code entry, status bar shows "Internal Evaluation Version" fixed **horizontally centered** (bold red text, font size unchanged) |
+| **Installer** (Setup) | `PolyXRD-GetCIF-Setup.exe` / `PolyXRD-GetCIF-Plus-Setup.exe` | ~100/270 MB | ✅ | Normal installation flow: install location selectable, Start Menu / desktop shortcuts, with uninstall; the onedir build starts without self-extraction; after installation every startup checks registration (same as the single-file build) |
 
-标准版 / Plus 版 / 安装包：未注册每次启动提示版权信息，注册后状态栏右侧显示单位部门名称；
-**内部评估版**注册机制整体停用。两个单文件版检索能力完全一致（COD / 本地库 / polyDB / xinDB / AMCSD / MP / Atomly）；
-标准版预览窗会提示升级 Plus。
+Standard edition / Plus edition / installer: when unregistered, a copyright notice is shown on every startup; after registration the right side of the status bar shows the institution/department name;
+For the **Internal evaluation build**, the registration mechanism is disabled entirely. The two single-file builds have identical search capabilities (COD / local database / polyDB / xinDB / AMCSD / MP / Atomly);
+The Standard edition's preview window prompts to upgrade to Plus.
 
-## 功能
+## Features
 
-- **多数据源检索**，左侧检索条件 / 右侧结果列表：
-  | 数据源 | 说明 | 默认 |
+- **Multi-data-source search**, search conditions on the left / result list on the right:
+  | Data source | Description | Default |
   |---|---|---|
-  | COD（联网） | Crystallography Open Database，无需凭证 | ✅ 开启 |
-  | COD 本地库 | SQLite 检索索引（兼容 PolyXRD 全库 `cod_index.sqlite`） | 配置后开启 |
-  | polyDB 外挂库 | PolyXRD v4 目录容器（`meta.json` + `index.sqlite`）；**可挂多份**（如 COD-Inorg + COD-Full）；CIF 按各库 `cif_rel` 相对数据根目录解析 | 配置后开启 |
-  | xinDB 库 | XinMatch v3 单文件（`.xinDB`）；**可挂多份**（如 COD / PCOD / TCOD）；仅元数据检索，不含 CIF 原文 | 配置后开启 |
-  | AMCSD（联网） | rruff.geo.arizona.edu，无需凭证 | 手动开启 |
-  | Materials Project | 需免费 API Key（materialsproject.org） | 配置后开启 |
-  | Atomly | 需 Token（atomly.net 登录后 localStorage 取 `userToken`） | 配置后开启 |
-- **检索条件**：化学式、元素、名称/关键词、空间群、晶系（本地库）、晶胞参数 a/b/c/α/β/γ
-- **候选预览**：双击结果行弹出预览窗 —— 结构信息、CIF 全文、3D 结构展示（Plus 版）、下载/另存
-- **三语界面**：中文 / English / 日本語（菜单即时切换）
-- **注册机制**：未注册每次启动提示版权信息；输入注册码后状态栏右侧显示注册单位
-- **帮助菜单**：版权与许可（双许可说明）· 关于
-- **明亮模式界面**：与家族工具一致的浅色接口（PolyXRD 青色强调）
+  | COD (online) | Crystallography Open Database, no credentials needed | ✅ Enabled |
+  | COD local database | SQLite search index (compatible with PolyXRD full-library `cod_index.sqlite`) | Enabled after configuration |
+  | polyDB external database | PolyXRD v4 directory container (`meta.json` + `index.sqlite`); **multiple can be mounted** (e.g. COD-Inorg + COD-Full); CIFs are resolved relative to the data root by each database's `cif_rel` | Enabled after configuration |
+  | xinDB database | XinMatch v3 single file (`.xinDB`); **multiple can be mounted** (e.g. COD / PCOD / TCOD); metadata search only, no original CIF text | Enabled after configuration |
+  | AMCSD (online) | rruff.geo.arizona.edu, no credentials needed | Manually enabled |
+  | Materials Project | Requires a free API Key (materialsproject.org) | Enabled after configuration |
+  | Atomly | Requires a Token (after logging in at atomly.net, take `userToken` from localStorage) | Enabled after configuration |
+- **Search conditions**: chemical formula, elements, name/keyword, space group, crystal system (local database), cell parameters a/b/c/α/β/γ
+- **Candidate preview**: double-click a result row to pop up the preview window — structure info, full CIF text, 3D structure display (Plus edition), download / save as
+- **Trilingual UI**: Chinese / English / Japanese (instant switching from the menu)
+- **Registration mechanism**: when unregistered, a copyright notice is shown on every startup; after entering a registration code the right side of the status bar shows the registered unit
+- **Help menu**: Copyright & License (dual-license notice) · About
+- **Light-mode UI**: a light interface consistent with the family tools (PolyXRD cyan accent)
 
-## 注册机制
+## Registration mechanism
 
-复用 PolyXRD 家族统一注册机制（与 PolyXRD-Reg 注册机算法一致）；**内部评估版（Internal）整体停用注册机制**，不受本节约束：
+Reuses the PolyXRD family's unified registration mechanism (same algorithm as the PolyXRD-Reg keygen); **the Internal evaluation build (Internal) disables the registration mechanism entirely** and is not subject to this section:
 
-| 场景 | 行为 |
+| Scenario | Behavior |
 |---|---|
-| 未注册，每次打开软件 | 弹窗：「本软件未注册，版权所有，禁止用于商业用途。如需注册请联系 sshztx@outlook.com」 |
-| 点「确定」 | 关闭弹窗，软件正常使用；下次打开依旧提示 |
-| 点「输入注册码」 | 打开注册对话框，粘贴注册码 → 校验通过即注册成功，以后不再提示 |
-| 帮助菜单 | 固定包含「输入注册码 (&R)…」 |
-| 注册成功后 | 状态栏最下面一排最右侧（右对齐）显示「已注册：\<单位部门名称\>」；未注册显示「未注册」 |
+| Unregistered, every time the software is opened | A dialog: "This software is unregistered. All rights reserved. Commercial use is prohibited. To register, please contact sshztx@outlook.com" |
+| Click "OK" | Closes the dialog, the software works normally; the prompt still appears next time |
+| Click "Enter Registration Code" | Opens the registration dialog, paste the registration code → once validation passes registration succeeds, and it no longer prompts |
+| Help menu | Always contains "Enter Registration Code (&R)…" |
+| After successful registration | The far right of the bottom row of the status bar (right-aligned) shows "Registered: \<institution/department name\>"; unregistered shows "Unregistered" |
 
-- 注册码由**开发方**根据用户提供的「单位部门名称」生成（PolyXRD-Reg 注册机 / `make_reg_code.py`），用户在软件内「帮助 → 输入注册码」粘贴后即完成注册；
-- 注册码格式 `PXRD1-XXXX-XXXX-...`：Base32 编码的「单位部门名称 + HMAC 签名」，软件端离线校验真伪并还原单位名，**无需联网、无需机器码**，同一注册码可在同一单位的多台电脑使用；
-- 注册状态保存于 `%APPDATA%\PolyXRD\GetCIF\registration.json`，每次启动重新校验，手改文件伪造「已注册」无效。
+- The registration code is generated by the **developer** from the "institution/department name" provided by the user (PolyXRD-Reg keygen / `make_reg_code.py`); the user pastes it in "Help → Enter Registration Code" in the software to complete registration;
+- Registration code format `PXRD1-XXXX-XXXX-...`: Base32-encoded "institution/department name + HMAC signature"; the software validates it offline and recovers the unit name, **no internet, no machine code needed**, and the same code can be used on multiple computers in the same institution;
+- Registration state is saved in `%APPDATA%\PolyXRD\GetCIF\registration.json`, re-validated on every startup; hand-editing the file to fake "Registered" has no effect.
 
-## 开发运行
+## Development / running from source
 
 ```bash
-# 依赖（PolyXRD venv 已齐备）
+# Dependencies (the PolyXRD venv is already set up)
 pip install -r requirements.txt
 
-# 启动
+# Launch
 set PYTHONPATH=src
 python -m getcif.gui
 
-# 离屏冒烟
+# Off-screen smoke
 QT_QPA_PLATFORM=offscreen python -m getcif.gui --smoke --no-splash
 ```
 
-## 打包全版本
+## Building all editions
 
 ```bat
 build.bat
-:: 产物: dist\PolyXRD-GetCIF.exe                 （标准版 onefile，去3D+裁剪Qt）
-::       dist\PolyXRD-GetCIF-Plus.exe            （Plus 版 onefile，含3D+全量Qt）
-::       dist\PolyXRD-GetCIF-Internal.exe        （内部评估版 onefile，Plus基底+无注册）
-::       dist\PolyXRD-GetCIF\                    （标准版 onedir，供安装包）
-::       dist\PolyXRD-GetCIF-Plus\               （Plus 版 onedir，供安装包）
-::       installer\Output\PolyXRD-GetCIF-Setup.exe       （标准版安装包）
-::       installer\Output\PolyXRD-GetCIF-Plus-Setup.exe  （Plus 版安装包）
+:: Artifacts: dist\PolyXRD-GetCIF.exe                 (Standard edition onefile, 3D removed + Qt trimmed)
+::       dist\PolyXRD-GetCIF-Plus.exe            (Plus edition onefile, with 3D + full Qt)
+::       dist\PolyXRD-GetCIF-Internal.exe        (Internal evaluation build onefile, Plus base + no registration)
+::       dist\PolyXRD-GetCIF\                    (Standard edition onedir, for the installer)
+::       dist\PolyXRD-GetCIF-Plus\               (Plus edition onedir, for the installer)
+::       installer\Output\PolyXRD-GetCIF-Setup.exe       (Standard edition installer)
+::       installer\Output\PolyXRD-GetCIF-Plus-Setup.exe  (Plus edition installer)
 ```
 
-构建脚本为纯 ASCII + CRLF（cmd 在 cp65001 下解析含全角字符的批处理行可能错位）；
-安装包需要 Inno Setup 6（未安装时自动跳过 Setup 步骤）。
+The build script is pure ASCII + CRLF (cmd under cp65001 may misparse batch lines containing full-width characters);
+The installer requires Inno Setup 6 (the Setup step is skipped automatically if not installed).
 
-## 配置存储
+## Configuration storage
 
-`%APPDATA%\PolyXRD\GetCIF\settings.toml`（数据源开关、凭证、索引路径、语言）；
-其中 `[local]` 节含 `db_path`（COD 索引）、`cod_root`（数据根目录）、
-`polydb_paths` / `xindb_paths`（多库列表，**换行分隔**；`polydb_path` / `xindb_path`
-为兼容旧版保留，自动等于列表首项）；
-注册状态 `%APPDATA%\PolyXRD\GetCIF\registration.json`；
-CIF 下载默认目录 `%APPDATA%\PolyXRD\GetCIF\downloads`。
+`%APPDATA%\PolyXRD\GetCIF\settings.toml` (data source switches, credentials, index paths, language);
+its `[local]` section contains `db_path` (COD index), `cod_root` (data root),
+`polydb_paths` / `xindb_paths` (multi-database lists, **newline-separated**; `polydb_path` / `xindb_path`
+are kept for backward compatibility and automatically equal the first list item);
+registration state `%APPDATA%\PolyXRD\GetCIF\registration.json`;
+default CIF download directory `%APPDATA%\PolyXRD\GetCIF\downloads`.
 
-## 本地库（v1.4.0 起）
+## Local databases (since v1.4.0)
 
-与 PolyXRD v4.0.0 / XinMatch v2.0.0 一致，采用**列表式多库挂载**：
+Consistent with PolyXRD v4.0.0 / XinMatch v2.0.0, using **list-style multi-database mounting**:
 
-- 设置 → 数据源设置 → polyDB / xinDB 各一张列表，**一行一个库**，可增删、可看状态
-  （物相数 / 变体 / 快照日期 / 不可用原因，悬停看明细）；
-- 添加时可指向库本体，也可指向**装着若干库的父目录**（如 `PolyXRD-DataBase\polydb`、
-  `XinMatch-DataBase\data`），自动展开其中所有 `.polyDB` / `.xinDB`；
-- 检索时逐个库查询后合并，候选 `provenance` 标明来自哪个库；同 eid 跨库重复只保留一份；
-- polyDB 的 CIF 原文按**该候选所属库**的 `meta.json` 解析：候选根依次为
-  设置里的「数据根目录」→ 环境变量 `XRD_DATA_ROOT` → `meta.source.root` → 库目录，
-  每个根再覆盖 `COD` / `PCOD` / `TCOD` 与 `inorg_cif/<lib>` 子目录；
+- Settings → Data Source Settings → polyDB / xinDB each get a list, **one database per row**, with add/remove and status visible
+  (phase count / variant / snapshot date / unavailability reason, hover for details);
+- When adding, you can point at the database itself or at a **parent directory containing several databases** (e.g. `PolyXRD-DataBase\polydb`,
+  `XinMatch-DataBase\data`), and all `.polyDB` / `.xinDB` inside are expanded automatically;
+- During search, each database is queried and the results merged, with the candidate's `provenance` indicating which database it came from; duplicate eid across databases are kept only once;
+- polyDB's original CIF is resolved by the `meta.json` of the **database the candidate belongs to**: candidate roots in order are
+  "Data root" in settings → environment variable `XRD_DATA_ROOT` → `meta.source.root` → the database directory,
+  and each root also covers the `COD` / `PCOD` / `TCOD` and `inorg_cif/<lib>` subdirectories;
 
-## 数据源致谢
+## Data source acknowledgements
 
-COD · AMCSD/RRUFF · Materials Project · Atomly 的公开数据服务。
-本地库格式兼容 PolyXRD（polyDB v1）与 XinMatch（xinDB v3）的外挂数据库。
+The public data services of COD · AMCSD/RRUFF · Materials Project · Atomly.
+Local database formats are compatible with the external databases of PolyXRD (polyDB v1) and XinMatch (xinDB v3).
