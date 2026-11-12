@@ -35,3 +35,6 @@ downloads/
 # ---- IDE ----
 .idea/
 .vscode/
+
+# WorkBuddy local assistant memory (not for public repos)
+.workbuddy/
